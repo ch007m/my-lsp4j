@@ -1,6 +1,7 @@
 package dev.snowdrop.lsp.socket;
 
 import dev.snowdrop.lsp.common.utils.LspClient;
+import dev.snowdrop.lsp.common.services.AnnotationSearchService;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -73,15 +74,55 @@ public class JdtlsSocketClient {
                 server.initialized(new InitializedParams());
                 logger.info("CLIENT: Handshake complete.");
             })
-            .thenCompose(v -> findAnnotationDefinition(server, mySearchableAnnotation))
-            .thenCompose(symbolResult -> findAnnotationReferences(server, symbolResult))
-            .thenAccept(JdtlsSocketClient::logReferenceResults)
+            .thenCompose(v -> searchWithAnnotationService(server, projectRoot, mySearchableAnnotation))
+            //.thenCompose(v -> findAnnotationDefinition(server, mySearchableAnnotation))
+            //.thenCompose(symbolResult -> findAnnotationReferences(server, symbolResult))
+            //.thenAccept(JdtlsSocketClient::logReferenceResults)
             .exceptionally(throwable -> {
                 logger.error("CLIENT: An error occurred in the LSP communication chain.", throwable);
                 return null; // Recover from the error to allow shutdown to proceed
             })
             .thenCompose(v -> server.shutdown()) // Chain the shutdown
             .thenRun(server::exit); // Finally, send the exit notification
+    }
+
+    /**
+     * Search for MySearchable annotation using the AnnotationSearchService with AST and IAnnotation.
+     */
+    private static CompletableFuture<Void> searchWithAnnotationService(LanguageServer server, Path projectRoot, String annotationName) {
+        logger.info("CLIENT: Starting AST-based search for @{} annotation...", annotationName);
+        
+        AnnotationSearchService searchService = new AnnotationSearchService(server);
+        
+        return searchService.searchAnnotation(projectRoot, annotationName)
+            .thenAccept(result -> {
+                logger.info("CLIENT: --- AST Search Results ---");
+                logger.info("CLIENT: Found {} @{} annotation(s) using AST analysis:", result.getMatchCount(), annotationName);
+                
+                for (AnnotationSearchService.AnnotationMatch match : result.getMatches()) {
+                    logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
+                        annotationName,
+                        match.getAnnotatedElement(),
+                        match.getLocation().getUri(),
+                        match.getLocation().getRange().getStart().getLine() + 1,
+                        match.getLocation().getRange().getStart().getCharacter() + 1
+                    );
+                    
+                    // Log annotation details if available
+                    AnnotationSearchService.AnnotationDetails details = match.getDetails();
+                    if (details.getMemberValues() != null && !details.getMemberValues().isEmpty()) {
+                        logger.info("CLIENT:    Annotation details: {}", details.getSourceText());
+                        for (AnnotationSearchService.AnnotationMemberValue member : details.getMemberValues()) {
+                            logger.info("CLIENT:      {} = {}", member.getName(), member.getValue());
+                        }
+                    }
+                }
+                logger.info("CLIENT: --------------------------------");
+            })
+            .exceptionally(throwable -> {
+                logger.error("CLIENT: AST-based annotation search failed", throwable);
+                return null;
+            });
     }
 
     /**
