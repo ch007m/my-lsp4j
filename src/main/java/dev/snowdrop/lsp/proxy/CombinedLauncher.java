@@ -1,8 +1,8 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.proxy;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.utils.FileUtils;
+import dev.snowdrop.lsp.common.utils.FileUtils;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;

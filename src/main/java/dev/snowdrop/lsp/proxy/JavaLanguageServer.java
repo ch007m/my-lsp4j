@@ -1,7 +1,7 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.proxy;
 
-import dev.snowdrop.lsp.services.JavaTextDocumentService;
-import dev.snowdrop.lsp.services.JavaWorkspaceService;
+import dev.snowdrop.lsp.common.services.JavaTextDocumentService;
+import dev.snowdrop.lsp.common.services.JavaWorkspaceService;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;

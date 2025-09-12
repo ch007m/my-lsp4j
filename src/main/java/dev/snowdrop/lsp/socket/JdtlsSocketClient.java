@@ -1,4 +1,4 @@
-package com.example.lsp;
+package dev.snowdrop.lsp.socket;
 
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -13,8 +13,6 @@ import java.net.Socket;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static com.example.lsp.AnnotationFinder.*;
 
 public class JdtlsSocketClient {
     
@@ -44,12 +42,12 @@ public class JdtlsSocketClient {
 
         try {
             logger.info("Sending 'initialize' request...");
-            InitializeResult initializeResult = languageServer.initialize(getInitializeParams(Paths.get(PROJECT_ROOT))).get();
+            InitializeResult initializeResult = languageServer.initialize(AnnotationFinder.getEnhancedInitializeParams(Paths.get(PROJECT_ROOT))).get();
             logger.info("Server capabilities: {}", initializeResult.getCapabilities());
             languageServer.initialized(new InitializedParams());
             logger.info("Handshake complete.");
 
-            findAnnotationUsages(languageServer, Paths.get(PROJECT_ROOT));
+            AnnotationFinder.findAnnotationUsagesAST(languageServer, Paths.get(PROJECT_ROOT), "MySearchableAnnotation");
 
         } finally {
             // 5. Gracefully shut down the connection

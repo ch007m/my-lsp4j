@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.utils;
+package dev.snowdrop.lsp.common.utils;
 
 import java.io.IOException;
 import java.io.PipedInputStream;

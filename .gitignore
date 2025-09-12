@@ -1,2 +1,4 @@
 /jdt-ls/
 .DS_Store
+target
+cp.txt

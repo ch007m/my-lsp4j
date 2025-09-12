@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.proxy;
 
 
 import org.eclipse.lsp4j.*;

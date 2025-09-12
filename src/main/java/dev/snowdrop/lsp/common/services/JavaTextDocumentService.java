@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.services;
+package dev.snowdrop.lsp.common.services;
 
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.*;
