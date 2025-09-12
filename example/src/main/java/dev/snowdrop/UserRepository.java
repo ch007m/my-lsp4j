@@ -1,3 +1,8 @@
+package dev.snowdrop;
+
+import dev.snowdrop.MySearchableAnnotation;
+import dev.snowdrop.User;
+
 public interface UserRepository {
 
     @MySearchableAnnotation("find method")

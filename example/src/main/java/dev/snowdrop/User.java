@@ -1,3 +1,5 @@
+package dev.snowdrop;
+
 @MySearchableAnnotation("entity")
 public class User {
 

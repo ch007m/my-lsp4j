@@ -1,3 +1,8 @@
+package dev.snowdrop;
+
+import dev.snowdrop.ImportantAnnotation;
+import dev.snowdrop.MySearchableAnnotation;
+
 public class Product {
 
     @MySearchableAnnotation(priority = 10)

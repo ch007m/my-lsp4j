@@ -1,3 +1,9 @@
+package dev.snowdrop;
+
+import dev.snowdrop.MySearchableAnnotation;
+import dev.snowdrop.User;
+import dev.snowdrop.UserRepository;
+
 @MySearchableAnnotation("service class")
 public class UserService {
 

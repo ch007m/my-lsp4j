@@ -72,6 +72,26 @@ This will:
 - Search for usages of the `@MySearchableAnnotation` in the example project
 - Display the results and shutdown gracefully
 
+## Important: Search Result Differences
+
+The two approaches return different search results due to their different methodologies:
+
+### Approach 1: Custom LSP Proxy Server
+- **Method**: Uses custom `java/findAnnotatedClasses` command with Eclipse JDT AST parsing
+- **Results**: Finds **only annotation usages** (classes/methods actually annotated)
+- **Count**: ~16 results
+- **Excludes**: Import statements, annotation definition
+
+### Approach 2: JDT-LS Socket Client
+- **Method**: Uses standard LSP `textDocument/references` after finding annotation definition
+- **Results**: Finds **all references** including imports, definition, and usages
+- **Count**: ~20 results  
+- **Includes**: Import statements (`import dev.snowdrop.MySearchableAnnotation;`), annotation definition, and annotation usages
+
+**Summary**: Both approaches are technically correct but serve different use cases:
+- Use **Approach 1** if you want only annotation usages (more targeted)
+- Use **Approach 2** if you want comprehensive reference finding (standard LSP behavior)
+
 ## Features Demonstrated
 
 - **AST-based Annotation Search**: Uses Eclipse JDT's Abstract Syntax Tree for precise Java code analysis

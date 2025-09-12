@@ -1,4 +1,4 @@
-package dev.swowdrop;
+package dev.snowdrop;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

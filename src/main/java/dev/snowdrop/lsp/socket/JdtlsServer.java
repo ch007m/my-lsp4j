@@ -56,7 +56,7 @@ public class JdtlsServer {
     
     private Process startJdtlsProcess() throws IOException {
 
-        Path tempDir = getExampleDir();
+        Path tempDir = getTempDir(); // getExampleDir();
         logger.info("Created temporary project directory: " + tempDir);
         //ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
 
