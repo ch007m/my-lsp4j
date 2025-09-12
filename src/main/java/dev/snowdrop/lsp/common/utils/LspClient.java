@@ -1,4 +1,5 @@
-package dev.snowdrop.lsp.socket;
+package dev.snowdrop.lsp.common.utils;
+
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -7,18 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * An implementation of the LanguageClient interface.
- * This class receives notifications and requests from the Language Server.
- */
 public class LspClient implements LanguageClient {
-
     private static final Logger logger = LoggerFactory.getLogger(LspClient.class);
     private ClientProxy server;
-
-    public void setServer(ClientProxy server) {
-        this.server = server;
-    }
 
     @Override
     public void telemetryEvent(Object object) {
@@ -32,7 +24,7 @@ public class LspClient implements LanguageClient {
 
     @Override
     public void showMessage(MessageParams messageParams) {
-        logger.info("showMessage: {}", messageParams);
+        logger.info("CLIENT: Message from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
     }
 
     @Override
@@ -42,8 +34,7 @@ public class LspClient implements LanguageClient {
     }
 
     @Override
-    public void logMessage(MessageParams message) {
-        // Log messages from the server are very useful for debugging
-        logger.info("[SERVER LOG] {}: {}", message.getType(), message.getMessage());
+    public void logMessage(MessageParams messageParams) {
+        logger.info("CLIENT: Log from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
     }
 }

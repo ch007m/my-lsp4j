@@ -5,18 +5,26 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Logger;
 
 public class FileUtils {
+    private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
     private static PipedInputStream inClient;
     private static PipedOutputStream outServer;
     private static PipedInputStream inServer;
     private static PipedOutputStream outClient;
     private static Path tempDir;
 
+    public static Path getExampleDir() {
+        return Paths.get(System.getProperty("user.dir"),"example");
+    }
+
     public static Path getTempDir() throws IOException {
-        if ( tempDir == null) {
-            tempDir = Files.createTempDirectory("lsp-java-project-");
+        if (tempDir == null) {
+            tempDir = Files.createTempDirectory("lsp");
         }
+        logger.info("Project path: " + tempDir.toString());
         return tempDir;
     }
 

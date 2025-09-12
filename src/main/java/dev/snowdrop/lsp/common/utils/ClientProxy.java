@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.socket;
+package dev.snowdrop.lsp.common.utils;
 
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageServer;

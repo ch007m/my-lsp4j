@@ -2,28 +2,21 @@ package dev.snowdrop.lsp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.proxy.JavaLanguageServer;
-import dev.snowdrop.lsp.proxy.LspClient;
+import dev.snowdrop.lsp.common.utils.LSPConnection;
+import dev.snowdrop.lsp.common.utils.LanguageServer;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.*;
@@ -36,10 +29,7 @@ public class ProxyLSPIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(ProxyLSPIntegrationTest.class);
     
     private Path tempDir;
-    private ExecutorService executor;
-    private LanguageServer serverProxy;
-    private Launcher<LanguageServer> serverLauncher;
-    private Launcher<LanguageServer> clientLauncher;
+    private LSPConnection lspConnection;
     
     @BeforeEach
     void setUp() throws Exception {
@@ -50,11 +40,11 @@ public class ProxyLSPIntegrationTest {
         // Create sample Java files for testing
         createTestFiles();
         
-        // Setup LSP communication infrastructure
-        setupLSPCommunication();
+        // Setup LSP communication infrastructure using utility class
+        lspConnection = LanguageServer.launchServerAndClient();
         
-        // Initialize the language server
-        initializeLanguageServer();
+        // Initialize the language server using utility class
+        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), tempDir);
     }
     
     private void createTestFiles() throws Exception {
@@ -106,66 +96,6 @@ public class ProxyLSPIntegrationTest {
         logger.info("TEST: Created {} test files", 3);
     }
     
-    private void setupLSPCommunication() throws Exception {
-        executor = Executors.newFixedThreadPool(4);
-        
-        // Create piped streams for client-server communication
-        PipedInputStream serverIn = new PipedInputStream();
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        
-        PipedInputStream clientIn = new PipedInputStream();
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-        
-        // Create and start server
-        JavaLanguageServer server = new JavaLanguageServer();
-        serverLauncher = new LSPLauncher.Builder<LanguageServer>()
-            .setLocalService(server)
-            .setRemoteInterface(LanguageServer.class)
-            .setInput(serverIn)
-            .setOutput(serverOut)
-            .setExecutorService(executor)
-            .create();
-        
-        serverLauncher.startListening();
-        
-        // Create client
-        LspClient client = new LspClient();
-        clientLauncher = new LSPLauncher.Builder<LanguageServer>()
-            .setLocalService(client)
-            .setRemoteInterface(LanguageServer.class)
-            .setInput(clientIn)
-            .setOutput(clientOut)
-            .setExecutorService(executor)
-            .create();
-        
-        serverProxy = clientLauncher.getRemoteProxy();
-        clientLauncher.startListening();
-        
-        // Allow time for connection establishment
-        Thread.sleep(100);
-        
-        logger.info("TEST: LSP communication setup completed");
-    }
-    
-    private void initializeLanguageServer() throws Exception {
-        // Initialize the server
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-        initParams.setRootUri(tempDir.toUri().toString());
-        
-        CompletableFuture<InitializeResult> initResult = serverProxy.initialize(initParams);
-        InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
-        
-        assertThat(result).isNotNull();
-        assertThat(result.getCapabilities()).isNotNull();
-        assertThat(result.getCapabilities().getExecuteCommandProvider()).isNotNull();
-        assertThat(result.getCapabilities().getExecuteCommandProvider().getCommands())
-            .contains("java/findAnnotatedClasses");
-        
-        serverProxy.initialized(new InitializedParams());
-        
-        logger.info("TEST: Language server initialized successfully");
-    }
     
     @Test
     @Timeout(10)
@@ -176,7 +106,7 @@ public class ProxyLSPIntegrationTest {
             Collections.singletonList("MySearchableAnnotation")
         );
         
-        CompletableFuture<Object> commandResult = serverProxy.getWorkspaceService()
+        CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService()
             .executeCommand(commandParams);
         Object result = commandResult.get(5, TimeUnit.SECONDS);
         
@@ -228,7 +158,7 @@ public class ProxyLSPIntegrationTest {
             Collections.singletonList("NonExistentAnnotation")
         );
         
-        CompletableFuture<Object> commandResult = serverProxy.getWorkspaceService()
+        CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService()
             .executeCommand(commandParams);
         Object result = commandResult.get(5, TimeUnit.SECONDS);
         
@@ -251,7 +181,7 @@ public class ProxyLSPIntegrationTest {
         initParams.setProcessId((int) ProcessHandle.current().pid());
         initParams.setRootUri(tempDir.toUri().toString());
         
-        CompletableFuture<InitializeResult> initResult = serverProxy.initialize(initParams);
+        CompletableFuture<InitializeResult> initResult = lspConnection.getServerProxy().initialize(initParams);
         InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
         
         // Verify server capabilities
@@ -274,7 +204,7 @@ public class ProxyLSPIntegrationTest {
     @Timeout(10)
     void testServerShutdown() throws Exception {
         // Test graceful shutdown
-        CompletableFuture<Object> shutdownResult = serverProxy.shutdown();
+        CompletableFuture<Object> shutdownResult = lspConnection.getServerProxy().shutdown();
         Object result = shutdownResult.get(5, TimeUnit.SECONDS);
         
         // Shutdown should complete without error
@@ -289,32 +219,23 @@ public class ProxyLSPIntegrationTest {
     
     // Cleanup method to be called after each test
     void tearDown() throws Exception {
-        if (serverProxy != null) {
-            try {
-                serverProxy.shutdown().get(2, TimeUnit.SECONDS);
-            } catch (Exception e) {
-                logger.warn("TEST: Error during server shutdown: {}", e.getMessage());
-            }
-        }
-        
-        if (executor != null) {
-            executor.shutdown();
-            if (!executor.awaitTermination(5, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
+        // Use utility class shutdown method
+        if (lspConnection != null) {
+            lspConnection.shutdown();
         }
         
         if (tempDir != null && Files.exists(tempDir)) {
             // Clean up temp directory
-            Files.walk(tempDir)
-                .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
-                .forEach(path -> {
-                    try {
-                        Files.delete(path);
-                    } catch (Exception e) {
-                        logger.warn("TEST: Could not delete {}: {}", path, e.getMessage());
-                    }
-                });
+            try (var paths = Files.walk(tempDir)) {
+                paths.sorted(java.util.Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.delete(path);
+                        } catch (Exception e) {
+                            logger.warn("TEST: Could not delete {}: {}", path, e.getMessage());
+                        }
+                    });
+            }
         }
         
         logger.info("TEST: Cleanup completed");

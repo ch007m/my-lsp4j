@@ -1,5 +1,7 @@
 package dev.snowdrop.lsp.socket;
 
+import dev.snowdrop.lsp.common.utils.FileUtils;
+import dev.snowdrop.lsp.common.utils.ProjectGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +14,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
+import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
 
 public class JdtlsServer {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsServer.class);
@@ -50,7 +55,11 @@ public class JdtlsServer {
     }
     
     private Process startJdtlsProcess() throws IOException {
-        String PROJECT_ROOT = Optional.ofNullable(System.getProperty("PROJECT_ROOT")).orElse("/Users/cmoullia/code/application-modernisation/konveyor/lsp-tuto/example");
+
+        Path tempDir = getExampleDir();
+        logger.info("Created temporary project directory: " + tempDir);
+        ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
+
         String os = System.getProperty("os.name").toLowerCase();
 
         Path configPath = os.contains("win") ? Paths.get(JDT_LS_PATH, "config_win") :
@@ -73,7 +82,7 @@ public class JdtlsServer {
             "--add-opens", "java.base/java.lang=ALL-UNNAMED",
             "-jar", Paths.get(JDT_LS_PATH, "plugins", launcherJar).toString(),
             "-configuration", configPath.toString(),
-            "-data", Paths.get(PROJECT_ROOT).resolve(".jdt_workspace").toString()
+            "-data", tempDir.resolve(".jdt_workspace").toString()
         );
         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         

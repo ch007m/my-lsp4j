@@ -1,9 +1,11 @@
 # Instructions to play with Eclipse JDT-LS & Protocol
 
-This project demonstrates two different approaches to use the Java Language Server & Protocol part of the project: Eclipse jdt-ls
+This project demonstrates two different approaches to use the Eclipse Java Language Server & Protocol (aka: Eclipse jdt-ls)
 
 1. **Custom LSP Proxy Server**: A self-contained implementation using piped streams
 2. **JDT-LS Binary with Socket Bridge**: Using the official JDT-LS binary with socket communication
+
+The project creates with the help of the [ProjectGenerator.java](src/main/java/dev/snowdrop/lsp/common/utils/ProjectGenerator.java) class a maven java project under a temporary folder where a class contains the annotation `@MySearchableAnnotation` that we would like to search about using Eclipse AST.
 
 ## Setup
 
@@ -19,7 +21,7 @@ mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
 For a complete demonstration that runs both client and server together, execute the following command:
 
 ```shell
-java -cp target/classes:$(cat cp.txt) dev.snowdrop.lsp.proxy.CombinedLauncher
+java -cp target/classes:$(cat cp.txt) dev.snowdrop.lsp.proxy.ServerAndClientLauncher
 ```
 
 This will:
@@ -58,7 +60,7 @@ This will:
 
 ### Run the Client
 
-In a separate terminal, run the client to connect and search for annotations:
+In a separate terminal, run the client to connect and search for the annotation ``:
 
 ```shell
 java -cp target/classes:$(cat cp.txt) dev.snowdrop.lsp.socket.JdtlsSocketClient

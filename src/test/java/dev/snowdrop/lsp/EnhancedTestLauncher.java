@@ -1,25 +1,20 @@
-package dev.snowdrop.lsp.proxy;
+package dev.snowdrop.lsp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.common.utils.FileUtils;
+import dev.snowdrop.lsp.common.utils.LSPConnection;
+import dev.snowdrop.lsp.common.utils.LanguageServer;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Enhanced test launcher that demonstrates AST-based annotation search
@@ -30,7 +25,7 @@ public class EnhancedTestLauncher {
 
     public static void main(String[] args) throws Exception {
         // Create temporary project with more complex examples
-        Path tempDir = FileUtils.getTempDir();
+        Path tempDir = FileUtils.getExampleDir();
         logger.info("Created temporary project directory: " + tempDir);
 
         // Create annotation
@@ -80,54 +75,15 @@ public class EnhancedTestLauncher {
             }
             """);
 
-        // Setup LSP communication
-        PipedInputStream serverIn = new PipedInputStream();
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        
-        PipedInputStream clientIn = new PipedInputStream();
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
+        // Setup LSP communication using utility class
+        LSPConnection lspConnection = dev.snowdrop.lsp.common.utils.LanguageServer.launchServerAndClient();
 
-        ExecutorService executor = Executors.newFixedThreadPool(4);
-
-        // Create and start server
-        JavaLanguageServer server = new JavaLanguageServer();
-        Launcher<LanguageServer> serverLauncher = new LSPLauncher.Builder<LanguageServer>()
-            .setLocalService(server)
-            .setRemoteInterface(LanguageServer.class)
-            .setInput(serverIn)
-            .setOutput(serverOut)
-            .setExecutorService(executor)
-            .create();
-
-        serverLauncher.startListening();
-
-        // Create client
-        LspClient client = new LspClient();
-        Launcher<LanguageServer> clientLauncher = new LSPLauncher.Builder<LanguageServer>()
-            .setLocalService(client)
-            .setRemoteInterface(LanguageServer.class)
-            .setInput(clientIn)
-            .setOutput(clientOut)
-            .setExecutorService(executor)
-            .create();
-
-        LanguageServer serverProxy = clientLauncher.getRemoteProxy();
-        clientLauncher.startListening();
+        // Initialize the language server with Project Path, ...
+        logger.info("CLIENT: Initializing language server...");
+        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), tempDir);
+        logger.info("CLIENT: Language server initialized successfully.");
 
         Thread.sleep(100);
-
-        // Initialize the server
-        logger.info("CLIENT: Sending 'initialize' request...");
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-        initParams.setRootUri(tempDir.toUri().toString());
-
-        CompletableFuture<InitializeResult> initResult = serverProxy.initialize(initParams);
-        initResult.get();
-        logger.info("CLIENT: 'initialize' request completed.");
-
-        serverProxy.initialized(new InitializedParams());
-        logger.info("CLIENT: Sent 'initialized' notification.");
 
         // Search for annotations
         String annotationToFind = "MySearchableAnnotation";
@@ -138,7 +94,7 @@ public class EnhancedTestLauncher {
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> commandResult = serverProxy.getWorkspaceService().executeCommand(commandParams);
+        CompletableFuture<Object> commandResult = lspConnection.getServer().getWorkspaceService().executeCommand(commandParams);
         Object result = commandResult.get();
 
         if (result != null) {
@@ -167,10 +123,9 @@ public class EnhancedTestLauncher {
 
         // Shutdown
         logger.info("CLIENT: Shutting down the language server...");
-        serverProxy.shutdown().get();
-        serverProxy.exit();
-        
-        executor.shutdown();
+        lspConnection.getServerProxy().shutdown().get();
+        lspConnection.getServerProxy().exit();
+
         logger.info("CLIENT: Enhanced test completed successfully!");
     }
 }
