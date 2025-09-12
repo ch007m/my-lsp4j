@@ -3,7 +3,6 @@ package dev.snowdrop.lsp.socket;
 import dev.snowdrop.lsp.common.utils.LspClient;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
