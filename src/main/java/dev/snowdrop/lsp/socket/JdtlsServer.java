@@ -58,7 +58,7 @@ public class JdtlsServer {
 
         Path tempDir = getExampleDir();
         logger.info("Created temporary project directory: " + tempDir);
-        ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
+        //ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
 
         String os = System.getProperty("os.name").toLowerCase();
 

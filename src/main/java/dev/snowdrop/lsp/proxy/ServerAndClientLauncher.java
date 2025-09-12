@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +25,7 @@ public class ServerAndClientLauncher {
         Path tempDir = FileUtils.getExampleDir();
         logger.info("Created temporary project directory: " + tempDir);
 
-        ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
+        //ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
 
         // Setup LSP communication using utility class
         LSPConnection lspConnection = LanguageServer.launchServerAndClient();
