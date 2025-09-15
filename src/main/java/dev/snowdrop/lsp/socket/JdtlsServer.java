@@ -1,7 +1,5 @@
 package dev.snowdrop.lsp.socket;
 
-import dev.snowdrop.lsp.common.utils.FileUtils;
-import dev.snowdrop.lsp.common.utils.ProjectGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,16 +9,14 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
 
 public class JdtlsServer {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsServer.class);
-    private static final String JDT_LS_PATH = "/Users/cmoullia/code/application-modernisation/lsp-tuto/jdt-ls";
+    private static final String JDT_LS_PATH = "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls";
     
     private Process jdtlsProcess;
 
@@ -75,6 +71,7 @@ public class JdtlsServer {
             "-Dosgi.bundles.defaultStartLevel=4",
             "-Declipse.product=org.eclipse.jdt.ls.core.product",
             "-Dlog.level=ALL",
+            "-Djdt.ls.debug=true",
             "-noverify",
             "-Xmx1G",
             "--add-modules=ALL-SYSTEM",

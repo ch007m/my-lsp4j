@@ -125,9 +125,11 @@ public class JdtlsSocketClient {
             });
     }
 
+
     /**
      * Find the annotation definition first using workspace/symbol
      */
+    /*
     private static CompletableFuture<Location> findAnnotationDefinition(LanguageServer server, String annotationName) {
         logger.info("CLIENT: Finding annotation definition for '@{}'...", annotationName);
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationName);
@@ -151,7 +153,7 @@ public class JdtlsSocketClient {
                 }
                 throw new RuntimeException("Annotation definition not found");
             });
-    }
+       }*/
 
     /**
      * Find all references to the annotation using textDocument/references

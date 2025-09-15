@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-public class JavaLanguageServer implements LanguageServer, LanguageClientAware {
+public class JavaLanguageServer implements LanguageServer {
     private static final Logger logger = LoggerFactory.getLogger(JavaLanguageServer.class);
 
     private final JavaTextDocumentService textDocumentService;
@@ -71,10 +71,4 @@ public class JavaLanguageServer implements LanguageServer, LanguageClientAware {
         return this.workspaceService;
     }
 
-    @Override
-    public void connect(LanguageClient client) {
-        this.client = client;
-        this.workspaceService.setClient(client);
-        logger.info("SERVER: Connected to client.");
-    }
 }

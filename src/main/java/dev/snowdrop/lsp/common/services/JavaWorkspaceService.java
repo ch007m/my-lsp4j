@@ -9,9 +9,6 @@ import org.slf4j.LoggerFactory;
  */
 public class JavaWorkspaceService extends BaseWorkspaceService {
     private static final Logger logger = LoggerFactory.getLogger(JavaWorkspaceService.class);
-
-    // The base class already provides all the functionality we need.
-    // This class can be extended to add proxy-specific behavior if needed.
     
     // Example: Add proxy-specific logging or behavior
     @Override
