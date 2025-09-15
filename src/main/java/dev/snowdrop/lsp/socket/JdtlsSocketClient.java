@@ -96,9 +96,18 @@ public class JdtlsSocketClient {
         
         return searchService.searchAnnotation(projectRoot, annotationName)
             .thenAccept(result -> {
-                logger.info("CLIENT: --- AST Search Results ---");
+                logger.info("CLIENT: --- LSP TextReference {} ---",result.size());
+                for(Location l : result) {
+                    logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
+                        annotationName,
+                        "",
+                        l.getUri(),
+                        l.getRange().getStart().getLine() + 1,
+                        l.getRange().getStart().getCharacter() + 1
+                    );
+                }
+                /*
                 logger.info("CLIENT: Found {} @{} annotation(s) using AST analysis:", result.getMatchCount(), annotationName);
-                
                 for (AnnotationSearchService.AnnotationMatch match : result.getMatches()) {
                     logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
                         annotationName,
@@ -116,11 +125,11 @@ public class JdtlsSocketClient {
                             logger.info("CLIENT:      {} = {}", member.getName(), member.getValue());
                         }
                     }
-                }
+                }*/
                 logger.info("CLIENT: --------------------------------");
             })
             .exceptionally(throwable -> {
-                logger.error("CLIENT: AST-based annotation search failed", throwable);
+                logger.error("CLIENT: LSP-based annotation search failed", throwable);
                 return null;
             });
     }

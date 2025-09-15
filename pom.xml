@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.example.lsp</groupId>
-    <artifactId>jdt-ls-client-example</artifactId>
+    <artifactId>lsp-tuto</artifactId>
     <version>1.0.0</version>
 
     <properties>
