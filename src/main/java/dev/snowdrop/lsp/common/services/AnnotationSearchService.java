@@ -73,7 +73,7 @@ public class AnnotationSearchService {
      */
     private CompletableFuture<List<LSPSymbolInfo>> findJavaFilesUsingLSP(String annotationName) {
         if (languageServer == null) {
-            logger.debug("No LanguageServer available, skipping LSP discovery");
+            logger.error("No LanguageServer available, skipping LSP discovery");
             return CompletableFuture.completedFuture(new ArrayList<>());
         }
         
@@ -108,7 +108,7 @@ public class AnnotationSearchService {
                     }
                 }
                 
-                logger.debug("LSP workspace/symbol found {} symbols for '{}'", lspSymbols.size(), annotationName);
+                logger.info("LSP workspace/symbol found {} symbols for '{}'", lspSymbols.size(), annotationName);
                 return lspSymbols;
             });
     }

@@ -64,7 +64,7 @@ public class JdtlsSocketClient {
         InitializeParams initParams = new InitializeParams();
         initParams.setProcessId((int) ProcessHandle.current().pid());
         initParams.setRootUri(projectRoot.toUri().toString());
-        initParams.setCapabilities(new ClientCapabilities()); // FIX: Always send client capabilities
+        initParams.setCapabilities(new ClientCapabilities());
 
         // This is the full asynchronous chain of operations
         return server.initialize(initParams)
@@ -83,7 +83,7 @@ public class JdtlsSocketClient {
                 return null; // Recover from the error to allow shutdown to proceed
             })
             .thenCompose(v -> server.shutdown()) // Chain the shutdown
-            .thenRun(server::exit); // Finally, send the exit notification
+            .thenRun(server::exit);
     }
 
     /**
