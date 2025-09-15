@@ -2,16 +2,17 @@ package dev.snowdrop.lsp.proxy;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LSPConnection;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
-import org.eclipse.lsp4j.ExecuteCommandParams;
-import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,15 +37,62 @@ public class ServerAndClientLauncher {
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-        ExecuteCommandParams commandParams = new ExecuteCommandParams(
+/*        ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
         );
 
         CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService().executeCommand(commandParams);
-        Object result = commandResult.get();
+        Object result = commandResult.get();*/
 
-        if (result != null) {
+        WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
+        lspConnection.getServerProxy().getWorkspaceService().symbol(symbolParams)
+            .thenApply(eitherResult -> {
+                List<LSPSymbolInfo> lspSymbols = new ArrayList<>();
+
+                if (eitherResult.isLeft()) {
+                    List<? extends SymbolInformation> symbols = eitherResult.getLeft();
+                    for (SymbolInformation symbol : symbols) {
+                        lspSymbols.add(new LSPSymbolInfo(
+                            symbol.getName(),
+                            symbol.getLocation().getUri(),
+                            symbol.getKind(),
+                            symbol.getLocation()
+                        ));
+                    }
+                } else {
+                    List<? extends WorkspaceSymbol> symbols = eitherResult.getRight();
+                    for (WorkspaceSymbol symbol : symbols) {
+                        if (symbol.getLocation().isLeft()) {
+                            Location location = symbol.getLocation().getLeft();
+                            lspSymbols.add(new LSPSymbolInfo(
+                                symbol.getName(),
+                                location.getUri(),
+                                symbol.getKind(),
+                                location
+                            ));
+                        }
+                    }
+                }
+
+                logger.info("LSP workspace/symbol found {} symbols for '{}'", lspSymbols.size(), annotationToFind);
+                return lspSymbols;
+            }).thenAccept(lspSymbols -> {
+                logger.info("CLIENT: --- LSP workspace/symbol {} ---",lspSymbols.size());
+                for(LSPSymbolInfo l : lspSymbols) {
+                    logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
+                        annotationToFind,
+                        "",
+                        l.getFileUri(),
+                        l.getLocation().getRange().getStart().getLine() + 1,
+                        l.getLocation().getRange().getStart().getCharacter() + 1
+                    );
+                }
+            });
+
+        logger.info("CLIENT: --------------------------------");
+
+/*        if (result != null) {
             Gson gson = new Gson();
             Type locationListType = new TypeToken<List<Location>>() {}.getType();
             List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
@@ -65,7 +113,7 @@ public class ServerAndClientLauncher {
             logger.info("CLIENT: ----------------------");
         } else {
             logger.warn("CLIENT: Received null result for command.");
-        }
+        }*/
 
         // Shutdown using utility class
         logger.info("CLIENT: Shutting down the language server...");
