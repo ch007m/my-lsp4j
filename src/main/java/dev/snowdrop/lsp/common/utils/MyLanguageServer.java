@@ -91,21 +91,25 @@ public class MyLanguageServer {
      * 
      * @param server the server to initialize
      * @param projectRoot the project root directory
-     * @return the initialization result
      * @throws Exception if initialization fails
      */
-    public static InitializeResult initializeLanguageServer(LanguageServer server, Path projectRoot) throws Exception {
+    public static CompletableFuture<Void> initializeLanguageServer(LanguageServer server, Path projectRoot) throws Exception {
         InitializeParams initParams = new InitializeParams();
         initParams.setProcessId((int) ProcessHandle.current().pid());
         initParams.setRootUri(projectRoot.toUri().toString());
         
-        CompletableFuture<InitializeResult> initResult = server.initialize(initParams);
-        InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
-        
-        // Complete the handshake
-        server.initialized(new InitializedParams());
-        
-        logger.info("Language server initialized successfully");
-        return result;
+        return server.initialize(initParams)
+            .orTimeout(10, TimeUnit.SECONDS)
+            .thenAccept(result -> {
+                logger.info("CLIENT: Initialization successful.");
+                server.initialized(new InitializedParams());
+                logger.info("CLIENT: Handshake complete.");
+            })
+            .exceptionally(throwable -> {
+                logger.error("CLIENT: An error occurred: ", throwable);
+                return null; // Recover from the error to allow shutdown to proceed
+            })
+            .thenCompose(v -> server.shutdown())
+            .thenRun(server::exit);
     }
 }
