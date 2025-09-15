@@ -3,7 +3,7 @@ package dev.snowdrop.lsp;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.common.utils.FileUtils;
-import dev.snowdrop.lsp.common.utils.LSPConnection;
+import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import org.eclipse.lsp4j.*;
 import org.slf4j.Logger;
@@ -76,11 +76,11 @@ public class EnhancedTestLauncher {
             """);
 
         // Setup LSP communication using utility class
-        LSPConnection lspConnection = dev.snowdrop.lsp.common.utils.LanguageServer.launchServerAndClient();
+        SnowdropLS snowdropLS = dev.snowdrop.lsp.common.utils.LanguageServer.launchServerAndClient(false);
 
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");
-        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), tempDir);
+        LanguageServer.initializeLanguageServer(snowdropLS.getServerProxy(), tempDir);
         logger.info("CLIENT: Language server initialized successfully.");
 
         Thread.sleep(100);
@@ -94,7 +94,7 @@ public class EnhancedTestLauncher {
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> commandResult = lspConnection.getServer().getWorkspaceService().executeCommand(commandParams);
+        CompletableFuture<Object> commandResult = snowdropLS.getServer().getWorkspaceService().executeCommand(commandParams);
         Object result = commandResult.get();
 
         if (result != null) {
@@ -123,8 +123,8 @@ public class EnhancedTestLauncher {
 
         // Shutdown
         logger.info("CLIENT: Shutting down the language server...");
-        lspConnection.getServerProxy().shutdown().get();
-        lspConnection.getServerProxy().exit();
+        snowdropLS.getServerProxy().shutdown().get();
+        snowdropLS.getServerProxy().exit();
 
         logger.info("CLIENT: Enhanced test completed successfully!");
     }

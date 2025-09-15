@@ -2,7 +2,7 @@ package dev.snowdrop.lsp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.common.utils.LSPConnection;
+import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import org.eclipse.lsp4j.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ public class ProxyLSPIntegrationTest {
     private static final Logger logger = LoggerFactory.getLogger(ProxyLSPIntegrationTest.class);
     
     private Path tempDir;
-    private LSPConnection lspConnection;
+    private SnowdropLS snowdropLS;
     
     @BeforeEach
     void setUp() throws Exception {
@@ -41,10 +41,10 @@ public class ProxyLSPIntegrationTest {
         createTestFiles();
         
         // Setup LSP communication infrastructure using utility class
-        lspConnection = LanguageServer.launchServerAndClient();
+        snowdropLS = LanguageServer.launchServerAndClient(false);
         
         // Initialize the language server using utility class
-        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), tempDir);
+        LanguageServer.initializeLanguageServer(snowdropLS.getServerProxy(), tempDir);
     }
     
     private void createTestFiles() throws Exception {
@@ -106,7 +106,7 @@ public class ProxyLSPIntegrationTest {
             Collections.singletonList("MySearchableAnnotation")
         );
         
-        CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService()
+        CompletableFuture<Object> commandResult = snowdropLS.getServerProxy().getWorkspaceService()
             .executeCommand(commandParams);
         Object result = commandResult.get(5, TimeUnit.SECONDS);
         
@@ -158,7 +158,7 @@ public class ProxyLSPIntegrationTest {
             Collections.singletonList("NonExistentAnnotation")
         );
         
-        CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService()
+        CompletableFuture<Object> commandResult = snowdropLS.getServerProxy().getWorkspaceService()
             .executeCommand(commandParams);
         Object result = commandResult.get(5, TimeUnit.SECONDS);
         
@@ -181,7 +181,7 @@ public class ProxyLSPIntegrationTest {
         initParams.setProcessId((int) ProcessHandle.current().pid());
         initParams.setRootUri(tempDir.toUri().toString());
         
-        CompletableFuture<InitializeResult> initResult = lspConnection.getServerProxy().initialize(initParams);
+        CompletableFuture<InitializeResult> initResult = snowdropLS.getServerProxy().initialize(initParams);
         InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
         
         // Verify server capabilities
@@ -204,7 +204,7 @@ public class ProxyLSPIntegrationTest {
     @Timeout(10)
     void testServerShutdown() throws Exception {
         // Test graceful shutdown
-        CompletableFuture<Object> shutdownResult = lspConnection.getServerProxy().shutdown();
+        CompletableFuture<Object> shutdownResult = snowdropLS.getServerProxy().shutdown();
         Object result = shutdownResult.get(5, TimeUnit.SECONDS);
         
         // Shutdown should complete without error
@@ -220,8 +220,8 @@ public class ProxyLSPIntegrationTest {
     // Cleanup method to be called after each test
     void tearDown() throws Exception {
         // Use utility class shutdown method
-        if (lspConnection != null) {
-            lspConnection.shutdown();
+        if (snowdropLS != null) {
+            snowdropLS.shutdown();
         }
         
         if (tempDir != null && Files.exists(tempDir)) {

@@ -9,8 +9,12 @@ import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -25,56 +29,50 @@ public class LanguageServer {
     private static final Logger logger = LoggerFactory.getLogger(LanguageServer.class);
 
     /**
-     * Create and set up an LSP server and client using piped streams.
+     * Create and set up an LSP server and client
      * 
-     * @return LSPConnection
+     * @return SnowdropLS
      * @throws Exception if setup fails
      */
-    public static LSPConnection launchServerAndClient() throws Exception {
+    public static SnowdropLS launchServerAndClient(boolean useSocket) throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(4);
-        
+        InputStream jdtLSInput;
+        OutputStream jdtLSOutput;
+
         try {
-            // Create piped streams for client-server communication
-            PipedInputStream serverIn = new PipedInputStream();
-            PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-            
-            PipedInputStream clientIn = new PipedInputStream();
-            PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-            
-            // Create and start server
-            JavaLanguageServer server = new JavaLanguageServer();
-            Launcher<org.eclipse.lsp4j.services.LanguageServer> serverLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
+            if (useSocket) {
+                ServerSocket socket = new ServerSocket(3333);
+                // Create piped streams for client-server communication using socket
+                jdtLSInput = socket.accept().getInputStream();
+                jdtLSOutput = socket.accept().getOutputStream();
+            } else {
+                // Create piped streams for client-server communication
+                jdtLSInput = new PipedInputStream();
+                jdtLSOutput = new PipedOutputStream();
+            }
+
+            // Create and start the jdt-ls server
+            LanguageServer server = new LanguageServer();
+            Launcher<org.eclipse.lsp4j.services.LanguageServer> jdtLSClientLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
                 .setLocalService(server)
                 .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
-                .setInput(serverIn)
-                .setOutput(serverOut)
+                .setInput(jdtLSInput)
+                .setOutput(jdtLSOutput)
                 .setExecutorService(executor)
                 .create();
             
-            serverLauncher.startListening();
-            
-            // Create client
-            LspClient client = new LspClient();
-            Launcher<org.eclipse.lsp4j.services.LanguageServer> clientLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
-                .setLocalService(client)
-                .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
-                .setInput(clientIn)
-                .setOutput(clientOut)
-                .setExecutorService(executor)
-                .create();
-            
-            org.eclipse.lsp4j.services.LanguageServer serverProxy = clientLauncher.getRemoteProxy();
-            clientLauncher.startListening();
+            // Create the client calling the jdt-ls server
+            org.eclipse.lsp4j.services.LanguageServer jdtLS = jdtLSClientLauncher.getRemoteProxy();
+            jdtLSClientLauncher.startListening();
             
             // Allow time for connection establishment
             Thread.sleep(100);
             
-            logger.info("LSP communication setup completed");
+            logger.info("LS Server and Client setup completed");
             
-            return new LSPConnection(executor, serverLauncher, clientLauncher, serverProxy, server, client);
+            return new SnowdropLS(jdtLS);
             
         } catch (Exception e) {
-            // Cleanup on failure
             if (executor != null && !executor.isShutdown()) {
                 executor.shutdown();
             }
