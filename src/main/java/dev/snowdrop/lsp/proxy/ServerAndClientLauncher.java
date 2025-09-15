@@ -3,14 +3,14 @@ package dev.snowdrop.lsp.proxy;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.MyLanguageServer;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
-import org.eclipse.lsp4j.ExecuteCommandParams;
-import org.eclipse.lsp4j.InitializeParams;
-import org.eclipse.lsp4j.InitializedParams;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ServerAndClientLauncher {
@@ -26,8 +26,8 @@ public class ServerAndClientLauncher {
 
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");
-        MyLanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
-        logger.info("CLIENT: Language server initialized successfully.");
+        CompletableFuture<InitializeResult> initializeResult = MyLanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
+        logger.info("CLIENT: Language server initialized successfully: ");
 
         Thread.sleep(1000);
 
@@ -35,15 +35,26 @@ public class ServerAndClientLauncher {
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-        ExecuteCommandParams commandParams = new ExecuteCommandParams(
+        try {
+        CompletableFuture<Either<List<? extends SymbolInformation>, List<? extends WorkspaceSymbol>>> result = snowdropLS.getServer().getWorkspaceService().symbol(new WorkspaceSymbolParams(annotationToFind));
+            logger.info("CLIENT: Found: " + result);
+            logger.info("CLIENT: --------------------------------");
+        } catch(Exception ex) {
+            logger.error("Error: " + ex.getMessage(), ex);
+        }
+
+/*        ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> result = snowdropLS.getServer().getWorkspaceService().executeCommand(commandParams);
-        logger.info("CLIENT: Found: " + result.get());
-
-        logger.info("CLIENT: --------------------------------");
+        try {
+            CompletableFuture<Object> result = snowdropLS.getServer().getWorkspaceService().executeCommand(commandParams);
+            logger.info("CLIENT: Found: " + result);
+            logger.info("CLIENT: --------------------------------");
+        } catch(Exception ex) {
+            logger.error("Error: " + ex.getMessage(), ex);
+        }*/
 
 /*        if (result != null) {
             Gson gson = new Gson();
