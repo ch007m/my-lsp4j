@@ -100,16 +100,14 @@ public class MyLanguageServer {
         
         return server.initialize(initParams)
             .orTimeout(10, TimeUnit.SECONDS)
-            .thenAccept(result -> {
+            .thenAcceptAsync(result -> {
                 logger.info("CLIENT: Initialization successful.");
                 server.initialized(new InitializedParams());
                 logger.info("CLIENT: Handshake complete.");
             })
             .exceptionally(throwable -> {
                 logger.error("CLIENT: An error occurred: ", throwable);
-                return null; // Recover from the error to allow shutdown to proceed
-            })
-            .thenCompose(v -> server.shutdown())
-            .thenRun(server::exit);
+                return null;
+            });
     }
 }
