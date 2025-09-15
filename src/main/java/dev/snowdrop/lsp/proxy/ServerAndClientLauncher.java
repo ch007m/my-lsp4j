@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LSPConnection;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
-import dev.snowdrop.lsp.common.utils.ProjectGenerator;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.Location;
 import org.slf4j.Logger;
@@ -22,17 +21,15 @@ public class ServerAndClientLauncher {
 
     public static void main(String[] args) throws Exception {
 
-        Path tempDir = FileUtils.getExampleDir();
-        logger.info("Created temporary project directory: " + tempDir);
-
-        //ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
+        Path exampleDir = FileUtils.getExampleDir();
+        logger.info("Created project directory: " + exampleDir);
 
         // Setup LSP communication using utility class
         LSPConnection lspConnection = LanguageServer.launchServerAndClient();
         
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");
-        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), tempDir);
+        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), exampleDir);
         logger.info("CLIENT: Language server initialized successfully.");
 
         // Send custom command
