@@ -51,7 +51,8 @@ public class AnnotationSearchService {
                 return CompletableFuture.completedFuture(new ArrayList<Location>());
             }
             // If definition is found, proceed to find its references
-            return findAnnotationReferences(optionalDefinition.getFirst());
+            // TODO: Improve this code to iterate
+            return findAnnotationReferences(optionalDefinition.get(0));
         });
     }
     
