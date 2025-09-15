@@ -52,9 +52,8 @@ public class JdtlsServer {
     
     private Process startJdtlsProcess() throws IOException {
 
-        Path tempDir = getTempDir(); // getExampleDir();
-        logger.info("Created temporary project directory: " + tempDir);
-        //ProjectGenerator.generateCompleteProject(tempDir,"lsp-proxy","dev.swowdrop","lsp-proxy");
+        Path wksDir = getTempDir();
+        logger.info("Created workspace project directory: " + wksDir);
 
         String os = System.getProperty("os.name").toLowerCase();
 
@@ -79,7 +78,7 @@ public class JdtlsServer {
             "--add-opens", "java.base/java.lang=ALL-UNNAMED",
             "-jar", Paths.get(JDT_LS_PATH, "plugins", launcherJar).toString(),
             "-configuration", configPath.toString(),
-            "-data", tempDir.resolve(".jdt_workspace").toString()
+            "-data", wksDir.resolve(".jdt_workspace").toString()
         );
         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
         
