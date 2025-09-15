@@ -106,97 +106,12 @@ public class JdtlsSocketClient {
                         l.getRange().getStart().getCharacter() + 1
                     );
                 }
-                /*
-                logger.info("CLIENT: Found {} @{} annotation(s) using AST analysis:", result.getMatchCount(), annotationName);
-                for (AnnotationSearchService.AnnotationMatch match : result.getMatches()) {
-                    logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
-                        annotationName,
-                        match.getAnnotatedElement(),
-                        match.getLocation().getUri(),
-                        match.getLocation().getRange().getStart().getLine() + 1,
-                        match.getLocation().getRange().getStart().getCharacter() + 1
-                    );
-                    
-                    // Log annotation details if available
-                    AnnotationSearchService.AnnotationDetails details = match.getDetails();
-                    if (details.getMemberValues() != null && !details.getMemberValues().isEmpty()) {
-                        logger.info("CLIENT:    Annotation details: {}", details.getSourceText());
-                        for (AnnotationSearchService.AnnotationMemberValue member : details.getMemberValues()) {
-                            logger.info("CLIENT:      {} = {}", member.getName(), member.getValue());
-                        }
-                    }
-                }*/
                 logger.info("CLIENT: --------------------------------");
             })
             .exceptionally(throwable -> {
                 logger.error("CLIENT: LSP-based annotation search failed", throwable);
                 return null;
             });
-    }
-
-
-    /**
-     * Find the annotation definition first using workspace/symbol
-     */
-    /*
-    private static CompletableFuture<Location> findAnnotationDefinition(LanguageServer server, String annotationName) {
-        logger.info("CLIENT: Finding annotation definition for '@{}'...", annotationName);
-        WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationName);
-        return server.getWorkspaceService().symbol(symbolParams)
-            .thenApply(eitherResult -> {
-                if (eitherResult.isLeft()) {
-                    List<? extends SymbolInformation> symbols = eitherResult.getLeft();
-                    if (!symbols.isEmpty()) {
-                        SymbolInformation symbol = symbols.get(0);
-                        logger.info("CLIENT: Found annotation definition at: {}", symbol.getLocation().getUri());
-                        return symbol.getLocation();
-                    }
-                } else {
-                    List<? extends WorkspaceSymbol> symbols = eitherResult.getRight();
-                    if (!symbols.isEmpty()) {
-                        WorkspaceSymbol symbol = symbols.get(0);
-                        Location location = symbol.getLocation().getLeft();
-                        logger.info("CLIENT: Found annotation definition at: {}", location.getUri());
-                        return location;
-                    }
-                }
-                throw new RuntimeException("Annotation definition not found");
-            });
-       }*/
-
-    /**
-     * Find all references to the annotation using textDocument/references
-     */
-    private static CompletableFuture<List<? extends Location>> findAnnotationReferences(LanguageServer server, Location annotationLocation) {
-        logger.info("CLIENT: Finding references to annotation...");
-        
-        ReferenceParams referenceParams = new ReferenceParams();
-        referenceParams.setTextDocument(new TextDocumentIdentifier(annotationLocation.getUri()));
-        referenceParams.setPosition(annotationLocation.getRange().getStart());
-        referenceParams.setContext(new ReferenceContext(true)); // Include declaration
-        
-        return server.getTextDocumentService().references(referenceParams);
-    }
-
-    /**
-     * Log the reference results
-     */
-    private static void logReferenceResults(List<? extends Location> locations) {
-        logger.info("CLIENT: --- Search Results ---");
-        
-        if (locations == null || locations.isEmpty()) {
-            logger.info("CLIENT: No annotation usages found.");
-        } else {
-            logger.info("CLIENT: Found {} usage(s) of the annotation:", locations.size());
-            for (Location location : locations) {
-                logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
-                    location.getUri(),
-                    location.getRange().getStart().getLine() + 1,
-                    location.getRange().getStart().getCharacter() + 1
-                );
-            }
-        }
-        logger.info("CLIENT: ----------------------");
     }
 
     /**
