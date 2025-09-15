@@ -37,14 +37,38 @@ public class ServerAndClientLauncher {
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-/*        ExecuteCommandParams commandParams = new ExecuteCommandParams(
+       ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
         );
 
         CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService().executeCommand(commandParams);
-        Object result = commandResult.get();*/
+        Object result = commandResult.get();
 
+        if (result != null) {
+            Gson gson = new Gson();
+            Type locationListType = new TypeToken<List<Location>>() {}.getType();
+            List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
+
+            logger.info("CLIENT: --- Search Results ---");
+            if (locations.isEmpty()) {
+                logger.info("CLIENT: No classes found with the annotation '@{}'.", annotationToFind);
+            } else {
+                logger.info("CLIENT: Found {} usage(s) of '@{}':", locations.size(), annotationToFind);
+                for (Location loc : locations) {
+                    logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
+                        loc.getUri(),
+                        loc.getRange().getStart().getLine() + 1,
+                        loc.getRange().getStart().getCharacter() + 1
+                    );
+                }
+            }
+            logger.info("CLIENT: ----------------------");
+        } else {
+            logger.warn("CLIENT: Received null result for command.");
+        }
+
+        /*
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
         lspConnection.getServerProxy().getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
@@ -91,29 +115,7 @@ public class ServerAndClientLauncher {
             });
 
         logger.info("CLIENT: --------------------------------");
-
-/*        if (result != null) {
-            Gson gson = new Gson();
-            Type locationListType = new TypeToken<List<Location>>() {}.getType();
-            List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
-
-            logger.info("CLIENT: --- Search Results ---");
-            if (locations.isEmpty()) {
-                logger.info("CLIENT: No classes found with the annotation '@{}'.", annotationToFind);
-            } else {
-                logger.info("CLIENT: Found {} usage(s) of '@{}':", locations.size(), annotationToFind);
-                for (Location loc : locations) {
-                    logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
-                        loc.getUri(),
-                        loc.getRange().getStart().getLine() + 1,
-                        loc.getRange().getStart().getCharacter() + 1
-                    );
-                }
-            }
-            logger.info("CLIENT: ----------------------");
-        } else {
-            logger.warn("CLIENT: Received null result for command.");
-        }*/
+        */
 
         // Shutdown using utility class
         logger.info("CLIENT: Shutting down the language server...");
