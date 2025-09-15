@@ -3,7 +3,7 @@ package dev.snowdrop.lsp;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
-import dev.snowdrop.lsp.common.utils.LanguageServer;
+import dev.snowdrop.lsp.common.utils.MyLanguageServer;
 import org.eclipse.lsp4j.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,10 +41,10 @@ public class ProxyLSPIntegrationTest {
         createTestFiles();
         
         // Setup LSP communication infrastructure using utility class
-        snowdropLS = LanguageServer.launchServerAndClient(false);
+        snowdropLS = MyLanguageServer.launchServerAndClient(false);
         
         // Initialize the language server using utility class
-        LanguageServer.initializeLanguageServer(snowdropLS.getServerProxy(), tempDir);
+        MyLanguageServer.initializeLanguageServer(snowdropLS.getServer(), tempDir);
     }
     
     private void createTestFiles() throws Exception {

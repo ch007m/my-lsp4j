@@ -3,7 +3,7 @@ package dev.snowdrop.lsp.proxy;
 import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
-import dev.snowdrop.lsp.common.utils.LanguageServer;
+import dev.snowdrop.lsp.common.utils.MyLanguageServer;
 import org.eclipse.lsp4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +21,11 @@ public class ServerAndClientLauncher {
         logger.info("Created project directory: " + exampleDir);
 
         // Set up the launchers, server and client
-        SnowdropLS snowdropLS = LanguageServer.launchServerAndClient(false);
+        SnowdropLS snowdropLS = MyLanguageServer.launchServerAndClient(false);
         
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");
-        LanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
+        MyLanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
         logger.info("CLIENT: Language server initialized successfully.");
 
         // Send custom command
