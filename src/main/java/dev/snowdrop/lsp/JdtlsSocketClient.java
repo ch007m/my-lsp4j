@@ -56,10 +56,9 @@ public class JdtlsSocketClient {
             initParams.setRootUri(getExampleDir().toUri().toString());
             initParams.setCapabilities(new ClientCapabilities());
 
-            CompletableFuture<InitializeResult> initResult = languageServer.initialize(initParams);
-
-            // Complete the handshake
+            languageServer.initialize(initParams);
             languageServer.initialized(new InitializedParams());
+
             searchAnnotation(languageServer, tempDir, "MySearchableAnnotation").join();
         } catch (Exception e) {
             logger.error("The LSP workflow failed unexpectedly.", e);

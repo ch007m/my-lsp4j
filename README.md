@@ -67,3 +67,5 @@ mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
 
 **Remark**: The server is started using as system property: `-DCLIENT_PORT=3333`
 
+You can check the log of the server from the parent folder within: `.jdt_workspace/.metadata/.log` !
+
