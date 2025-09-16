@@ -41,10 +41,10 @@ public class JdtLsEmbedded {
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
         // TEST using ExecuteCommand - OK
-        // executeCmd(annotationToFind, snowdropLS);
+        executeCmd(annotationToFind, snowdropLS);
 
         // TEST using symbol - NOK
-        useSymbol(annotationToFind, snowdropLS);
+        // useSymbol(annotationToFind, snowdropLS);
 
         logger.info("CLIENT: Shutting down the language server...");
         snowdropLS.getServer().shutdown();
@@ -87,7 +87,7 @@ public class JdtLsEmbedded {
 
     private static void useSymbol(String annotationToFind, SnowdropLS snowdropLS) {
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
-        snowdropLS.getLsInstance().getWorkspaceService().symbol(symbolParams)
+        snowdropLS.getServer().getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
                 List<LSPSymbolInfo> lspSymbols = new ArrayList<>();
 

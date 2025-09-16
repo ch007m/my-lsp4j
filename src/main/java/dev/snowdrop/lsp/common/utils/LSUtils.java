@@ -47,7 +47,7 @@ public class LSUtils {
                 .setExecutorService(executor)
                 .create();
             serverLauncher.startListening();
-            return new SnowdropLS(snowdropLanguageServer, serverLauncher.getRemoteProxy());
+            return new SnowdropLS(snowdropLanguageServer);
             
         } catch (Exception e) {
             // Cleanup on failure
@@ -77,7 +77,7 @@ public class LSUtils {
         // Complete the handshake
         serverProxy.initialized(new InitializedParams());
         
-        logger.info("Language server initialized successfully");
+        logger.info("SERVER: Language server initialized successfully");
         return result;
     }
 }

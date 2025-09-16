@@ -86,7 +86,7 @@ public class JdtlsSocketClient {
      * Search for MySearchable annotation
      */
     private static CompletableFuture<Void> searchWithAnnotationService(LanguageServer server, Path projectRoot, String annotationName) {
-        logger.info("CLIENT: Starting AST-based search for @{} annotation...", annotationName);
+        logger.info("CLIENT: Starting search for @{} annotation...", annotationName);
         
         AnnotationSearchService searchService = new AnnotationSearchService(server);
         
