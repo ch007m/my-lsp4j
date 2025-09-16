@@ -7,6 +7,7 @@ import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
