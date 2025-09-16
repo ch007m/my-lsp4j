@@ -19,9 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 /**
- * Base workspace service that provides shared AST-based annotation search functionality.
- * Both socket and proxy implementations can extend this class to get the improved
- * annotation search capabilities.
+ * Base workspace service that provides search functionality.
  */
 public abstract class BaseWorkspaceService implements WorkspaceService {
     private static final Logger logger = LoggerFactory.getLogger(BaseWorkspaceService.class);
@@ -111,51 +109,6 @@ public abstract class BaseWorkspaceService implements WorkspaceService {
 
         logger.info("SERVER: Found {} locations.", locations.size());
         return CompletableFuture.completedFuture(locations);
-    }
-
-    /**
-     * Alternative method for finding annotations that allows for custom filtering.
-     * Subclasses can override this to implement different search strategies.
-     */
-    protected CompletableFuture<Object> findAnnotationsWithFilter(String annotationName, AnnotationFilter filter) {
-        logger.info("SERVER: Searching for annotations with custom filter");
-        List<Location> locations = new ArrayList<>();
-        
-        if (workspaceRoot == null) {
-            return CompletableFuture.completedFuture(locations);
-        }
-
-        try {
-            Path rootPath = Paths.get(URI.create(workspaceRoot));
-            try (Stream<Path> paths = Files.walk(rootPath)) {
-                paths.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(".java"))
-                    .filter(filter::shouldProcessFile)
-                    .forEach(path -> {
-                        try {
-                            if (ASTAnnotationParser.quickAnnotationCheck(path, annotationName)) {
-                                List<Location> fileLocations = ASTAnnotationParser.parseJavaFileForAnnotations(path, annotationName);
-                                locations.addAll(filter.filterLocations(fileLocations));
-                            }
-                        } catch (Exception e) {
-                            logger.error("SERVER: Failed to parse file {}", path, e);
-                        }
-                    });
-            }
-        } catch (IOException e) {
-            logger.error("SERVER: Failed to walk workspace path {}", workspaceRoot, e);
-        }
-
-        logger.info("SERVER: Found {} filtered locations.", locations.size());
-        return CompletableFuture.completedFuture(locations);
-    }
-
-    /**
-     * Interface for custom annotation filtering.
-     */
-    public interface AnnotationFilter {
-        boolean shouldProcessFile(Path file);
-        List<Location> filterLocations(List<Location> locations);
     }
 
     // Default WorkspaceService method implementations
