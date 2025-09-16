@@ -2,7 +2,6 @@ package dev.snowdrop.lsp.common.services;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.common.SnowdropLanguageServer;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
@@ -25,14 +24,19 @@ public class AnnotationSearchService {
         this.languageServer = languageServer;
     }
 
-    public static void executeCmd(String annotationToFind, SnowdropLanguageServer languageServer) throws ExecutionException, InterruptedException {
+    public static void executeCmd(String annotationToFind, LanguageServer LS) {
         ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> commandResult = languageServer.getWorkspaceService().executeCommand(commandParams);
-        Object result = commandResult.get();
+        CompletableFuture<Object> commandResult = LS.getWorkspaceService().executeCommand(commandParams);
+        Object result = null;
+        try {
+            result = commandResult.get();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         if (result != null) {
             Gson gson = new Gson();

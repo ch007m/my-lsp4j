@@ -1,25 +1,13 @@
 package dev.snowdrop.lsp;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LSUtils;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
-import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
-import static dev.snowdrop.lsp.common.services.AnnotationSearchService.executeCmd;
 import static dev.snowdrop.lsp.common.utils.LSUtils.initializeLanguageServer;
 
 public class JdtLsEmbedded {

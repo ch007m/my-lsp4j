@@ -1,6 +1,5 @@
 package dev.snowdrop.lsp;
 
-import dev.snowdrop.lsp.common.SnowdropLanguageServer;
 import dev.snowdrop.lsp.common.utils.LspClient;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
@@ -17,6 +16,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -50,23 +50,22 @@ public class JdtlsSocketClient {
             throw new RuntimeException(e);
         }
 
-        LanguageServer languageServer = launcher.getRemoteProxy();
+        LanguageServer LS = launcher.getRemoteProxy();
 
         InitializeParams initParams = new InitializeParams();
         initParams.setProcessId((int) ProcessHandle.current().pid());
         initParams.setRootUri(getExampleDir().toUri().toString());
         initParams.setCapabilities(new ClientCapabilities());
 
-        languageServer.initialize(initParams);
-        languageServer.initialized(new InitializedParams());
-
-        SnowdropLanguageServer snowdropLS = new SnowdropLanguageServer();
-        snowdropLS.setWorkSpaceRoot(getExampleDir().toUri().toString());
-
         // Send custom command
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
-        executeCmd(annotationToFind,snowdropLS);
+
+        LS.initialize(initParams)
+            .thenRunAsync(() -> LS.initialized(new InitializedParams()))
+            .thenRunAsync(() -> {
+                    executeCmd(annotationToFind, LS);
+            });
 
         executor.shutdown();
     }
