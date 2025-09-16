@@ -39,10 +39,10 @@ public class JdtlsSocketClient {
         );
 
         Future<Void> listening = launcher.startListening();
-        LanguageServer serverProxy = launcher.getRemoteProxy();
+        LanguageServer languageServer = launcher.getRemoteProxy();
 
         try {
-            runLspClient(serverProxy, tempDir, "MySearchableAnnotation").join();
+            runLspClient(languageServer, tempDir, "MySearchableAnnotation").join();
         } catch (Exception e) {
             logger.error("The LSP workflow failed unexpectedly.", e);
         } finally {

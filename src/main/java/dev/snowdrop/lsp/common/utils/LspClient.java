@@ -10,7 +10,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class LspClient implements LanguageClient {
     private static final Logger logger = LoggerFactory.getLogger(LspClient.class);
-    private ClientProxy server;
 
     @Override
     public void telemetryEvent(Object object) {
