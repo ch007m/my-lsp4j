@@ -21,6 +21,10 @@ public class SnowdropLanguageServer implements LanguageServer {
         this.workspaceService = new JavaWorkspaceService();
     }
 
+    public void setWorkSpaceRoot(String workSpaceRoot) {
+        this.workspaceService.setWorkspaceRoot(workSpaceRoot);
+    }
+
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         logger.info("SERVER: Initializing Java Language Server...");

@@ -43,7 +43,7 @@ public class JdtLsEmbedded {
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
         // TEST using ExecuteCommand - OK
-        executeCmd(annotationToFind, (LanguageServer)snowdropLS);
+        //executeCmd(annotationToFind, snowdropLS);
 
         // TEST using symbol - NOK
         // useSymbol(annotationToFind, snowdropLS);

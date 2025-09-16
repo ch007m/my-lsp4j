@@ -72,7 +72,7 @@ public class JavaWorkspaceService implements WorkspaceService {
     }
 
     /**
-     * Handle the java/findAnnotatedClasses command using AST-based search.
+     * Handle the java/findAnnotatedClasses command
      */
     protected CompletableFuture<Object> handleFindAnnotatedClassesCommand(ExecuteCommandParams params) {
         if (params.getArguments() == null || params.getArguments().isEmpty()) {
@@ -88,14 +88,14 @@ public class JavaWorkspaceService implements WorkspaceService {
             annotationSimpleName = arg.toString();
         }
 
-        return findClassesWithAnnotationAST(annotationSimpleName);
+        return findClassesWithAnnotation(annotationSimpleName);
     }
 
     /**
-     * Find classes with the specified annotation using AST-based parsing.
+     * Find classes with the specified annotation
      * This is the shared implementation that provides accurate annotation search.
      */
-    protected CompletableFuture<Object> findClassesWithAnnotationAST(String annotationSimpleName) {
+    protected CompletableFuture<Object> findClassesWithAnnotation(String annotationSimpleName) {
         logger.info("SERVER: Searching for classes with annotation '@{}' in workspace: {}", annotationSimpleName, workspaceRoot);
         List<Location> locations = new ArrayList<>();
 

@@ -60,10 +60,13 @@ public class JdtlsSocketClient {
         languageServer.initialize(initParams);
         languageServer.initialized(new InitializedParams());
 
+        SnowdropLanguageServer snowdropLS = new SnowdropLanguageServer();
+        snowdropLS.setWorkSpaceRoot(getExampleDir().toUri().toString());
+
         // Send custom command
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
-        executeCmd(annotationToFind,new SnowdropLanguageServer());
+        executeCmd(annotationToFind,snowdropLS);
 
         executor.shutdown();
     }
