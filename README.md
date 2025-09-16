@@ -48,6 +48,8 @@ tar -vxf jdt-language-server-1.50.0.tar.gz -C jdt-ls
 Start it using the following command
 
 ```shell
+set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls" or
+export JDT_LS_PATH="/Users/cmoullia/code/application-modernisation/lsp/jdt-ls"
 mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.socket.JdtlsServer
 ```
 

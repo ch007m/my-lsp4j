@@ -16,7 +16,7 @@ import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
 
 public class JdtlsServer {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsServer.class);
-    private static final String JDT_LS_PATH = "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls";
+    private static final String JDT_LS_PATH = System.getenv("JDT_LS_PATH");
     
     private Process jdtlsProcess;
 
