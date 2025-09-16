@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.common.ast;
+package dev.snowdrop.lsp.common.services.ast;
 
 import org.eclipse.jdt.core.dom.*;
 import org.eclipse.lsp4j.Location;

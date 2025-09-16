@@ -10,10 +10,6 @@ import java.util.logging.Logger;
 
 public class FileUtils {
     private static final Logger logger = Logger.getLogger(FileUtils.class.getName());
-    private static PipedInputStream inClient;
-    private static PipedOutputStream outServer;
-    private static PipedInputStream inServer;
-    private static PipedOutputStream outClient;
     private static Path tempDir;
 
     public static Path getExampleDir() {
@@ -26,31 +22,5 @@ public class FileUtils {
         }
         logger.info("Project path: " + tempDir.toString());
         return tempDir;
-    }
-
-    public static PipedInputStream inClient() {
-        inClient = new PipedInputStream();
-        return inClient;
-    }
-
-    public static PipedInputStream inServer() {
-        inServer = new PipedInputStream();
-        return inServer;
-    }
-
-    public static PipedOutputStream outServer() throws IOException {
-        if (inClient == null) {
-            inClient();
-        }
-        outServer = new PipedOutputStream(inClient);
-        return outServer;
-    }
-
-    public static PipedOutputStream outClient() throws IOException {
-        if (inServer == null) {
-            inServer();
-        }
-        outClient = new PipedOutputStream(inServer);
-        return outClient;
     }
 }

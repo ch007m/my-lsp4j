@@ -1,6 +1,6 @@
 package dev.snowdrop.lsp;
 
-import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
+import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;

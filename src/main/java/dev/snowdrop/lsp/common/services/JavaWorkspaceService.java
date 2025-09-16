@@ -1,6 +1,6 @@
 package dev.snowdrop.lsp.common.services;
 
-import dev.snowdrop.lsp.common.ast.ASTAnnotationParser;
+import dev.snowdrop.lsp.common.services.ast.ASTAnnotationParser;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.adapters.WorkspaceSymbolResponseAdapter;
 import org.eclipse.lsp4j.jsonrpc.json.ResponseJsonAdapter;

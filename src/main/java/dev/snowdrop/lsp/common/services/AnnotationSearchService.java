@@ -1,6 +1,6 @@
 package dev.snowdrop.lsp.common.services;
 
-import org.eclipse.jdt.core.dom.*;
+import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
