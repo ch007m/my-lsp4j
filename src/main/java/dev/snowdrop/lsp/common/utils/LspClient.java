@@ -23,17 +23,17 @@ public class LspClient implements LanguageClient {
 
     @Override
     public void showMessage(MessageParams messageParams) {
-        logger.debug("CLIENT: Message from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
+        logger.info("CLIENT: Message from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
     }
 
     @Override
     public CompletableFuture<MessageActionItem> showMessageRequest(ShowMessageRequestParams requestParams) {
-        logger.debug("showMessageRequest: {}", requestParams);
+        logger.info("showMessageRequest: {}", requestParams);
         return new CompletableFuture<>();
     }
 
     @Override
     public void logMessage(MessageParams messageParams) {
-        logger.debug("CLIENT: Log from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
+        logger.info("CLIENT: Log from server: [{}] {}", messageParams.getType(), messageParams.getMessage());
     }
 }

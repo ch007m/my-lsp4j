@@ -9,8 +9,14 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.*;
 
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
@@ -22,32 +28,45 @@ public class JdtlsSocketClient {
 
     public static void main(String[] args) throws Exception {
         Path tempDir = getExampleDir();
+        Launcher<LanguageServer> launcher;
+        ExecutorService executor;
 
-        logger.info("Connecting to JDT Language Server on port {}...", SERVER_PORT);
-        Socket socket = new Socket("localhost", SERVER_PORT);
-        logger.info("Connected to server.");
+        logger.info("Connecting to the JDT Language Server on port {}...", SERVER_PORT);
 
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        LspClient client = new LspClient();
+        try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
+            Socket socket = serverSocket.accept();
+            executor = Executors.newSingleThreadExecutor();
+            LspClient client = new LspClient();
 
-        Launcher<LanguageServer> launcher = LSPLauncher.createClientLauncher(
-            client,
-            socket.getInputStream(),
-            socket.getOutputStream(),
-            executor,
-            (writer) -> writer // No-op, we don't want to wrap the writer
-        );
+            launcher = LSPLauncher.createClientLauncher(
+                client,
+                socket.getInputStream(),
+                socket.getOutputStream(),
+                executor,
+                (writer) -> writer // No-op, we don't want to wrap the writer
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        Future<Void> listening = launcher.startListening();
         LanguageServer languageServer = launcher.getRemoteProxy();
 
         try {
+            InitializeParams initParams = new InitializeParams();
+            initParams.setProcessId((int) ProcessHandle.current().pid());
+            initParams.setRootUri(getExampleDir().toUri().toString());
+            initParams.setCapabilities(new ClientCapabilities());
+
+            CompletableFuture<InitializeResult> initResult = languageServer.initialize(initParams);
+            //InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
+
+            // Complete the handshake
+            languageServer.initialized(new InitializedParams());
             runLspClient(languageServer, tempDir, "MySearchableAnnotation").join();
         } catch (Exception e) {
             logger.error("The LSP workflow failed unexpectedly.", e);
         } finally {
-            // Gracefully shut down all resources
-            shutdownResources(listening, executor, socket);
+            executor.shutdown();
         }
     }
 
@@ -60,22 +79,10 @@ public class JdtlsSocketClient {
      * @return A CompletableFuture that completes when the entire sequence is finished.
      */
     private static CompletableFuture<Void> runLspClient(LanguageServer server, Path projectRoot, String mySearchableAnnotation) {
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-        initParams.setRootUri(projectRoot.toUri().toString());
-        initParams.setCapabilities(new ClientCapabilities());
-
-        // This is the full asynchronous chain of operations
-        return server.initialize(initParams)
-            .orTimeout(10, TimeUnit.SECONDS)
-            .thenAccept(result -> {
-                logger.info("CLIENT: Initialization successful.");
-                server.initialized(new InitializedParams());
-                logger.info("CLIENT: Handshake complete.");
-            })
-            .thenCompose(v -> searchWithAnnotationService(server, projectRoot, mySearchableAnnotation))
+        CompletableFuture<Void> response = searchWithAnnotationService(server, projectRoot, mySearchableAnnotation);
+        return response
             .exceptionally(throwable -> {
-                logger.error("CLIENT: An error occurred in the LSP communication chain.", throwable);
+                logger.error("CLIENT: An error occurred with the LS Server.", throwable);
                 return null;
             })
             .thenCompose(v -> server.shutdown())
@@ -87,11 +94,10 @@ public class JdtlsSocketClient {
      */
     private static CompletableFuture<Void> searchWithAnnotationService(LanguageServer server, Path projectRoot, String annotationName) {
         logger.info("CLIENT: Starting search for @{} annotation...", annotationName);
-        
         AnnotationSearchService searchService = new AnnotationSearchService(server);
         
         return searchService.searchAnnotation(projectRoot, annotationName)
-            .thenAccept(result -> {
+            .thenAcceptAsync(result -> {
                 logger.info("CLIENT: --- LSP TextReference {} ---",result.size());
                 for(Location l : result) {
                     logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
@@ -103,29 +109,7 @@ public class JdtlsSocketClient {
                     );
                 }
                 logger.info("CLIENT: --------------------------------");
-            })
-            .exceptionally(throwable -> {
-                logger.error("CLIENT: LSP-based annotation search failed", throwable);
-                return null;
             });
-    }
-
-    /**
-     * Gracefully shuts down all managed resources.
-     */
-    private static void shutdownResources(Future<Void> listening, ExecutorService executor, Socket socket) {
-        logger.info("Shutting down all resources...");
-        try {
-            listening.cancel(true);
-            executor.shutdown();
-            if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
-                executor.shutdownNow();
-            }
-            socket.close();
-        } catch (Exception e) {
-            logger.warn("Error during resource shutdown: {}", e.getMessage());
-        }
-        logger.info("Shutdown complete.");
     }
 
 }

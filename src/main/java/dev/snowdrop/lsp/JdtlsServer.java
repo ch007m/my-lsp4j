@@ -21,38 +21,13 @@ public class JdtlsServer {
     
     private Process jdtlsProcess;
 
-    public void startServerWithSocket(int port) throws IOException {
+    public void startServerWithSocket() throws IOException {
         JDT_LS_PATH = Optional
             .ofNullable(System.getenv("JDT_LS_PATH"))
             .orElseThrow(() -> new RuntimeException("JDT_LS_PATH en var is missing !"));
 
-        logger.info("Starting JDT Language Server with socket on port {}...", port);
-
         // Start the JDT LS process
         jdtlsProcess = startJdtlsProcess();
-        
-        // Create socket server to bridge communication
-        ServerSocket serverSocket = new ServerSocket(port);
-        logger.info("Socket server listening on port {}", port);
-        
-        ExecutorService executor = Executors.newCachedThreadPool();
-        
-        // Accept connections and bridge them to JDT LS
-        executor.submit(() -> {
-            try {
-                while (!serverSocket.isClosed()) {
-                    Socket clientSocket = serverSocket.accept();
-                    logger.info("Client connected: {}", clientSocket.getRemoteSocketAddress());
-                    
-                    // Bridge client socket to JDT LS process
-                    bridgeStreams(clientSocket, jdtlsProcess);
-                }
-            } catch (IOException e) {
-                if (!serverSocket.isClosed()) {
-                    logger.error("Error accepting connections", e);
-                }
-            }
-        });
     }
     
     private Process startJdtlsProcess() throws IOException {
@@ -60,10 +35,12 @@ public class JdtlsServer {
         Path wksDir = getTempDir();
         logger.info("Created workspace project directory: " + wksDir);
 
+        System.setProperty("CLIENT_PORT","3333");
+
         String os = System.getProperty("os.name").toLowerCase();
 
         Path configPath = os.contains("win") ? Paths.get(JDT_LS_PATH, "config_win") :
-            os.contains("mac") ? Paths.get(JDT_LS_PATH, "config_mac") :
+            os.contains("mac") ? Paths.get(JDT_LS_PATH, "config_mac_arm") :
                 Paths.get(JDT_LS_PATH, "config_linux");
 
         String launcherJar = Objects
@@ -97,48 +74,6 @@ public class JdtlsServer {
         
         return process;
     }
-    
-    private void bridgeStreams(Socket clientSocket, Process jdtlsProcess) {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-        
-        // Bridge client input to JDT LS output
-        executor.submit(() -> {
-            try (InputStream clientIn = clientSocket.getInputStream();
-                 OutputStream jdtlsOut = jdtlsProcess.getOutputStream()) {
-                
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = clientIn.read(buffer)) != -1) {
-                    jdtlsOut.write(buffer, 0, bytesRead);
-                    jdtlsOut.flush();
-                }
-            } catch (IOException e) {
-                logger.debug("Client to JDT LS stream closed", e);
-            }
-        });
-        
-        // Bridge JDT LS input to client output
-        executor.submit(() -> {
-            try (InputStream jdtlsIn = jdtlsProcess.getInputStream();
-                 OutputStream clientOut = clientSocket.getOutputStream()) {
-                
-                byte[] buffer = new byte[8192];
-                int bytesRead;
-                while ((bytesRead = jdtlsIn.read(buffer)) != -1) {
-                    clientOut.write(buffer, 0, bytesRead);
-                    clientOut.flush();
-                }
-            } catch (IOException e) {
-                logger.debug("JDT LS to client stream closed", e);
-            } finally {
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    logger.debug("Error closing client socket", e);
-                }
-            }
-        });
-    }
 
     public void stopServer() {
         if (jdtlsProcess != null) {
@@ -151,11 +86,11 @@ public class JdtlsServer {
     public static void main(String[] args) {
         try {
             JdtlsServer server = new JdtlsServer();
-            server.startServerWithSocket(3333);
+            server.startServerWithSocket();
             
             // Keep the main thread alive
             while (server.jdtlsProcess != null && server.jdtlsProcess.isAlive()) {
-                Thread.sleep(1000);
+                Thread.sleep(10000);
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);

@@ -31,7 +31,6 @@ public class AnnotationSearchService {
         
         // First use LSP to discover workspace symbols
         return findUsingLsSymbol(annotationName)
-             // If a definition is found, use it to find all Text references.
             .thenCompose(optionalDefinition -> {
             if (optionalDefinition.isEmpty()) {
                 logger.warn("Could not find a definition for annotation '{}'. Cannot search for references.", annotationName);
