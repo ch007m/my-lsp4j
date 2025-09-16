@@ -14,22 +14,9 @@ public class AnnotationSearchService {
     
     private static final Logger logger = LoggerFactory.getLogger(AnnotationSearchService.class);
     private final LanguageServer languageServer;
-    private final ASTParser astParser;
     
     public AnnotationSearchService(LanguageServer languageServer) {
         this.languageServer = languageServer;
-        this.astParser = createASTParser();
-    }
-    
-    /**
-     * Creates and configures an AST parser for Java source code analysis.
-     */
-    private ASTParser createASTParser() {
-        ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
-        parser.setKind(ASTParser.K_COMPILATION_UNIT);
-        parser.setResolveBindings(true); // Enable binding resolution for IAnnotation support
-        parser.setBindingsRecovery(true);
-        return parser;
     }
     
     /**

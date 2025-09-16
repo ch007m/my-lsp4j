@@ -74,9 +74,6 @@ public class JdtlsSocketClient {
                 logger.info("CLIENT: Handshake complete.");
             })
             .thenCompose(v -> searchWithAnnotationService(server, projectRoot, mySearchableAnnotation))
-            //.thenCompose(v -> findAnnotationDefinition(server, mySearchableAnnotation))
-            //.thenCompose(symbolResult -> findAnnotationReferences(server, symbolResult))
-            //.thenAccept(JdtlsSocketClient::logReferenceResults)
             .exceptionally(throwable -> {
                 logger.error("CLIENT: An error occurred in the LSP communication chain.", throwable);
                 return null; // Recover from the error to allow shutdown to proceed
@@ -86,7 +83,7 @@ public class JdtlsSocketClient {
     }
 
     /**
-     * Search for MySearchable annotation using the AnnotationSearchService with AST and IAnnotation.
+     * Search for MySearchable annotation
      */
     private static CompletableFuture<Void> searchWithAnnotationService(LanguageServer server, Path projectRoot, String annotationName) {
         logger.info("CLIENT: Starting AST-based search for @{} annotation...", annotationName);
