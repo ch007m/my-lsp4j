@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.proxy;
+package dev.snowdrop.lsp.common;
 
 import dev.snowdrop.lsp.common.services.JavaTextDocumentService;
 import dev.snowdrop.lsp.common.services.JavaWorkspaceService;

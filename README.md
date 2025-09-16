@@ -13,7 +13,6 @@ First, compile the project and generate the classpath file:
 
 ```shell
 mvn clean compile
-mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
 ```
 
 ## Approach 1: In-process
@@ -21,9 +20,7 @@ mvn dependency:build-classpath -Dmdep.outputFile=cp.txt
 For a complete demonstration that runs both client and server together, execute the following command:
 
 ```shell
-java -cp target/classes:$(cat cp.txt) dev.snowdrop.lsp.proxy.ServerAndClientLauncher
-or
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.proxy.ServerAndClientLauncher
+mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtLsEmbedded
 ```
 
 This will:
@@ -50,7 +47,7 @@ Start it using the following command
 ```shell
 set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls" or
 export JDT_LS_PATH="/Users/cmoullia/code/application-modernisation/lsp/jdt-ls"
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.socket.JdtlsServer
+mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
 ```
 
 This will:
@@ -62,5 +59,5 @@ This will:
 In a separate terminal, run the client to connect and search for the annotation:
 
 ```shell
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.socket.JdtlsSocketClient
+mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
 ```

@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.socket;
+package dev.snowdrop.lsp;
 
 import dev.snowdrop.lsp.common.utils.LspClient;
 import dev.snowdrop.lsp.common.services.AnnotationSearchService;
@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.net.Socket;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.concurrent.*;
 
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;

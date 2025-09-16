@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp.proxy;
+package dev.snowdrop.lsp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -17,8 +17,8 @@ import java.util.concurrent.CompletableFuture;
 
 import static dev.snowdrop.lsp.common.utils.LanguageServer.initializeLanguageServer;
 
-public class ServerAndClientLauncher {
-    private static final Logger logger = LoggerFactory.getLogger(ServerAndClientLauncher.class);
+public class JdtLsEmbedded {
+    private static final Logger logger = LoggerFactory.getLogger(JdtLsEmbedded.class);
 
     public static void main(String[] args) throws Exception {
 

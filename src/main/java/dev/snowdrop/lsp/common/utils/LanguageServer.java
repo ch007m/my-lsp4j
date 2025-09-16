@@ -1,6 +1,6 @@
 package dev.snowdrop.lsp.common.utils;
 
-import dev.snowdrop.lsp.proxy.SnowdropLanguageServer;
+import dev.snowdrop.lsp.common.SnowdropLanguageServer;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
