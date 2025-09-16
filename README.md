@@ -40,6 +40,15 @@ mkdir jdt-ls
 tar -vxf jdt-language-server-1.50.0.tar.gz -C jdt-ls
 ```
 
+To test the jdt-ls server of konveyor and their java bundle, extract it like this
+```shell
+set VERSION latest
+
+set ID $(podman create --name kantra-download quay.io/konveyor/kantra:$VERSION)
+podman cp $ID:/jdtls ./konveyor-jdtls
+```
+
+
 ### Start the JDT Language Server and expose it using a Socket
 
 Start it using the following command
