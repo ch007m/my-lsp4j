@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -16,11 +17,15 @@ import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
 
 public class JdtlsServer {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsServer.class);
-    private static final String JDT_LS_PATH = System.getenv("JDT_LS_PATH");
+    private static String JDT_LS_PATH;
     
     private Process jdtlsProcess;
 
     public void startServerWithSocket(int port) throws IOException {
+        JDT_LS_PATH = Optional
+            .ofNullable(System.getenv("JDT_LS_PATH"))
+            .orElseThrow(() -> new RuntimeException("JDT_LS_PATH en var is missing !"));
+
         logger.info("Starting JDT Language Server with socket on port {}...", port);
 
         // Start the JDT LS process
