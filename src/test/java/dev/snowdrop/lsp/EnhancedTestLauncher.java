@@ -76,7 +76,7 @@ public class EnhancedTestLauncher {
             """);
 
         // Setup LSP communication using utility class
-        SnowdropLS snowdropLS = dev.snowdrop.lsp.common.utils.LanguageServer.launchServerAndClient();
+        SnowdropLS snowdropLS = dev.snowdrop.lsp.common.utils.LanguageServer.launchServer();
 
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");

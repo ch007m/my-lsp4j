@@ -15,6 +15,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static dev.snowdrop.lsp.common.utils.LanguageServer.initializeLanguageServer;
+
 public class ServerAndClientLauncher {
     private static final Logger logger = LoggerFactory.getLogger(ServerAndClientLauncher.class);
 
@@ -24,11 +26,11 @@ public class ServerAndClientLauncher {
         logger.info("Created project directory: " + exampleDir);
 
         // Setup LSP
-        SnowdropLS snowdropLS = LanguageServer.launchServerAndClient();
+        SnowdropLS snowdropLS = LanguageServer.launchServer();
         
-        // Initialize the language server with Project Path, ...
+        // Initialize the language server with Project Path ...
         logger.info("CLIENT: Initializing language server...");
-        LanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
+        initializeLanguageServer(snowdropLS.getServer(), exampleDir);
         logger.info("CLIENT: Language server initialized successfully.");
 
         // Send custom command

@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Proxy-specific workspace service that extends the shared base class.
- * Uses AST-based annotation search provided by the base class.
  */
 public class JavaWorkspaceService extends BaseWorkspaceService {
     private static final Logger logger = LoggerFactory.getLogger(JavaWorkspaceService.class);

@@ -6,7 +6,6 @@ import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,23 +18,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Utility class for setting up LSP server and client communication in tests and demos.
- * Eliminates code duplication between test classes and main launcher classes.
+ * Utility class for setting up LSP server in tests and demos.
  */
 public class LanguageServer {
     private static final Logger logger = LoggerFactory.getLogger(LanguageServer.class);
 
     /**
-     * Create and set up an LSP server and client using piped streams.
+     * Create and set up an LSP server streams.
      * 
      * @return LSPConnection
      * @throws Exception if setup fails
      */
-    public static SnowdropLS launchServerAndClient() throws Exception {
+    public static SnowdropLS launchServer() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         
         try {
-            // Create piped streams for client-server communication
+            // Create streams for client-server communication
             PipedInputStream serverIn = new PipedInputStream();
             PipedOutputStream clientOut = new PipedOutputStream(serverIn);
             
@@ -53,24 +51,7 @@ public class LanguageServer {
                 .create();
             
             serverLauncher.startListening();
-            
-            // Create client
-            LspClient client = new LspClient();
-            Launcher<LanguageClient> clientLauncher = new LSPLauncher.Builder<LanguageClient>()
-                .setLocalService(client)
-                .setRemoteInterface(LanguageClient.class)
-                .setInput(clientIn)
-                .setOutput(clientOut)
-                .setExecutorService(executor)
-                .create();
 
-            clientLauncher.startListening();
-            
-            // Allow time for connection establishment
-            Thread.sleep(100);
-            
-            logger.info("LSP setup completed");
-            
             return new SnowdropLS(server);
             
         } catch (Exception e) {

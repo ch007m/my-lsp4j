@@ -41,7 +41,7 @@ public class ProxyLSPIntegrationTest {
         createTestFiles();
         
         // Setup LSP communication infrastructure using utility class
-        snowdropLS = LanguageServer.launchServerAndClient();
+        snowdropLS = LanguageServer.launchServer();
         
         // Initialize the language server using utility class
         LanguageServer.initializeLanguageServer(snowdropLS.getServer(), tempDir);
