@@ -2,6 +2,7 @@ package dev.snowdrop.lsp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -37,7 +39,8 @@ public class JdtLsEmbedded {
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-       ExecuteCommandParams commandParams = new ExecuteCommandParams(
+        /*
+        ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
         );
@@ -67,10 +70,10 @@ public class JdtLsEmbedded {
         } else {
             logger.warn("CLIENT: Received null result for command.");
         }
+        */
 
-        /*
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
-        lspConnection.getServerProxy().getWorkspaceService().symbol(symbolParams)
+        snowdropLS.getServer().getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
                 List<LSPSymbolInfo> lspSymbols = new ArrayList<>();
 
@@ -115,7 +118,6 @@ public class JdtLsEmbedded {
             });
 
         logger.info("CLIENT: --------------------------------");
-        */
 
         // Shutdown using utility class
         logger.info("CLIENT: Shutting down the language server...");
