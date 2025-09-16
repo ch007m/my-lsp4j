@@ -1,7 +1,7 @@
 package dev.snowdrop.lsp;
 
+import dev.snowdrop.lsp.common.SnowdropLanguageServer;
 import dev.snowdrop.lsp.common.utils.LspClient;
-import dev.snowdrop.lsp.common.services.AnnotationSearchService;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -16,17 +16,19 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static dev.snowdrop.lsp.common.services.AnnotationSearchService.executeCmd;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
 
 public class JdtlsSocketClient {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(JdtlsSocketClient.class);
     private static final int SERVER_PORT = 3333;
 
     public static void main(String[] args) throws Exception {
-        Path tempDir = getExampleDir();
         Launcher<LanguageServer> launcher;
         ExecutorService executor;
 
@@ -50,21 +52,20 @@ public class JdtlsSocketClient {
 
         LanguageServer languageServer = launcher.getRemoteProxy();
 
-        try {
-            InitializeParams initParams = new InitializeParams();
-            initParams.setProcessId((int) ProcessHandle.current().pid());
-            initParams.setRootUri(getExampleDir().toUri().toString());
-            initParams.setCapabilities(new ClientCapabilities());
+        InitializeParams initParams = new InitializeParams();
+        initParams.setProcessId((int) ProcessHandle.current().pid());
+        initParams.setRootUri(getExampleDir().toUri().toString());
+        initParams.setCapabilities(new ClientCapabilities());
 
-            languageServer.initialize(initParams);
-            languageServer.initialized(new InitializedParams());
+        languageServer.initialize(initParams);
+        languageServer.initialized(new InitializedParams());
 
-            searchAnnotation(languageServer, tempDir, "MySearchableAnnotation").join();
-        } catch (Exception e) {
-            logger.error("The LSP workflow failed unexpectedly.", e);
-        } finally {
-            executor.shutdown();
-        }
+        // Send custom command
+        String annotationToFind = "MySearchableAnnotation";
+        logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
+        executeCmd(annotationToFind,new SnowdropLanguageServer());
+
+        executor.shutdown();
     }
 
     /**
