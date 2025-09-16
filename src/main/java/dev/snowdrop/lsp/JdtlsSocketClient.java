@@ -52,7 +52,7 @@ public class JdtlsSocketClient {
     }
 
     /**
-     * Executes the entire client-side LSP workflow asynchronously.
+     * Initialize the LS client-server and search about the annotation
      *
      * @param server                 The proxy to the language server.
      * @param projectRoot            The root directory of the project to be analyzed.
@@ -76,9 +76,9 @@ public class JdtlsSocketClient {
             .thenCompose(v -> searchWithAnnotationService(server, projectRoot, mySearchableAnnotation))
             .exceptionally(throwable -> {
                 logger.error("CLIENT: An error occurred in the LSP communication chain.", throwable);
-                return null; // Recover from the error to allow shutdown to proceed
+                return null;
             })
-            .thenCompose(v -> server.shutdown()) // Chain the shutdown
+            .thenCompose(v -> server.shutdown())
             .thenRun(server::exit);
     }
 
