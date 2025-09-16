@@ -1,19 +1,22 @@
 package dev.snowdrop.lsp;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
-import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.WorkspaceSymbol;
-import org.eclipse.lsp4j.WorkspaceSymbolParams;
+import org.eclipse.lsp4j.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static dev.snowdrop.lsp.common.utils.LanguageServer.initializeLanguageServer;
 
@@ -37,7 +40,19 @@ public class JdtLsEmbedded {
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-        /*
+        // TEST using ExecuteCommand - OK
+        // executeCmd(annotationToFind, snowdropLS);
+
+        // TEST using symbol - NOK
+        useSymbol(annotationToFind, snowdropLS);
+
+        logger.info("CLIENT: Shutting down the language server...");
+        snowdropLS.getServer().shutdown();
+        snowdropLS.getServer().exit();
+        logger.info("CLIENT: Done.");
+    }
+
+    private static void executeCmd(String annotationToFind, SnowdropLS snowdropLS) throws ExecutionException, InterruptedException {
         ExecuteCommandParams commandParams = new ExecuteCommandParams(
             "java/findAnnotatedClasses",
             Collections.singletonList(annotationToFind)
@@ -68,8 +83,9 @@ public class JdtLsEmbedded {
         } else {
             logger.warn("CLIENT: Received null result for command.");
         }
-        */
+    }
 
+    private static void useSymbol(String annotationToFind, SnowdropLS snowdropLS) {
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
         snowdropLS.getServer().getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
@@ -120,11 +136,5 @@ public class JdtLsEmbedded {
                 return null;
             });
 
-        logger.info("CLIENT: --------------------------------");
-
-        // Shutdown using utility class
-        logger.info("CLIENT: Shutting down the language server...");
-        //snowdropLS.shutdown();
-        logger.info("CLIENT: Done.");
     }
 }
