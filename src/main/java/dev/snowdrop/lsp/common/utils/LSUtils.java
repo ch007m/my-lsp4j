@@ -18,38 +18,36 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Utility class for setting up LSP server in tests and demos.
+ * Utility class for setting up LSP
  */
-public class LanguageServer {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageServer.class);
+public class LSUtils {
+    private static final Logger logger = LoggerFactory.getLogger(LSUtils.class);
 
     /**
      * Create and set up an LSP server streams.
      * 
-     * @return LSPConnection
+     * @return SnowdropLS
      * @throws Exception if setup fails
      */
     public static SnowdropLS launchServer() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         
         try {
-            // Create streams for client-server communication
+            // Create streams for client-snowdropLanguageServer communication
             PipedInputStream jdtLSInput = new PipedInputStream();
             PipedOutputStream jdtLSOutput = new PipedOutputStream(jdtLSInput);
             
-            // Create and start the jdt-ls server
-            SnowdropLanguageServer server = new SnowdropLanguageServer();
+            // Create and start the jdt-ls snowdropLanguageServer
+            SnowdropLanguageServer snowdropLanguageServer = new SnowdropLanguageServer();
             Launcher<org.eclipse.lsp4j.services.LanguageServer> serverLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
-                .setLocalService(server)
+                .setLocalService(snowdropLanguageServer)
                 .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
                 .setInput(jdtLSInput)
                 .setOutput(jdtLSOutput)
                 .setExecutorService(executor)
                 .create();
-            
             serverLauncher.startListening();
-
-            return new SnowdropLS(server);
+            return new SnowdropLS(snowdropLanguageServer, serverLauncher.getRemoteProxy());
             
         } catch (Exception e) {
             // Cleanup on failure

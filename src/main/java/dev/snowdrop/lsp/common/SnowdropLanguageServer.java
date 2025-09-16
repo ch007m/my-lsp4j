@@ -14,7 +14,6 @@ public class SnowdropLanguageServer implements LanguageServer {
 
     private final JavaTextDocumentService textDocumentService;
     private final JavaWorkspaceService workspaceService;
-    private LanguageClient client;
     private int exitCode = 0;
 
     public SnowdropLanguageServer() {

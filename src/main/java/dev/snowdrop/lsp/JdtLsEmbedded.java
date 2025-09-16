@@ -4,10 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
-import dev.snowdrop.lsp.common.utils.LanguageServer;
+import dev.snowdrop.lsp.common.utils.LSUtils;
 import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static dev.snowdrop.lsp.common.utils.LanguageServer.initializeLanguageServer;
+import static dev.snowdrop.lsp.common.utils.LSUtils.initializeLanguageServer;
 
 public class JdtLsEmbedded {
     private static final Logger logger = LoggerFactory.getLogger(JdtLsEmbedded.class);
@@ -30,7 +29,7 @@ public class JdtLsEmbedded {
         logger.info("Created project directory: " + exampleDir);
 
         // Setup LSP
-        SnowdropLS snowdropLS = LanguageServer.launchServer();
+        SnowdropLS snowdropLS = LSUtils.launchServer();
 
         // Initialize the language server with Project Path ...
         logger.info("CLIENT: Initializing language server...");
@@ -88,7 +87,7 @@ public class JdtLsEmbedded {
 
     private static void useSymbol(String annotationToFind, SnowdropLS snowdropLS) {
         WorkspaceSymbolParams symbolParams = new WorkspaceSymbolParams(annotationToFind);
-        snowdropLS.getServer().getWorkspaceService().symbol(symbolParams)
+        snowdropLS.getLsInstance().getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
                 List<LSPSymbolInfo> lspSymbols = new ArrayList<>();
 
