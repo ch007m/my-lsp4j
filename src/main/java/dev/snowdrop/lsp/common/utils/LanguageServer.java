@@ -1,11 +1,12 @@
 package dev.snowdrop.lsp.common.utils;
 
-import dev.snowdrop.lsp.proxy.JavaLanguageServer;
+import dev.snowdrop.lsp.proxy.SnowdropLanguageServer;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class LanguageServer {
      * @return LSPConnection
      * @throws Exception if setup fails
      */
-    public static LSPConnection launchServerAndClient() throws Exception {
+    public static SnowdropLS launchServerAndClient() throws Exception {
         ExecutorService executor = Executors.newFixedThreadPool(4);
         
         try {
@@ -41,8 +42,8 @@ public class LanguageServer {
             PipedInputStream clientIn = new PipedInputStream();
             PipedOutputStream serverOut = new PipedOutputStream(clientIn);
             
-            // Create and start server
-            JavaLanguageServer server = new JavaLanguageServer();
+            // Create and start the jdt-ls server
+            SnowdropLanguageServer server = new SnowdropLanguageServer();
             Launcher<org.eclipse.lsp4j.services.LanguageServer> serverLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
                 .setLocalService(server)
                 .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
@@ -55,23 +56,22 @@ public class LanguageServer {
             
             // Create client
             LspClient client = new LspClient();
-            Launcher<org.eclipse.lsp4j.services.LanguageServer> clientLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
+            Launcher<LanguageClient> clientLauncher = new LSPLauncher.Builder<LanguageClient>()
                 .setLocalService(client)
-                .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
+                .setRemoteInterface(LanguageClient.class)
                 .setInput(clientIn)
                 .setOutput(clientOut)
                 .setExecutorService(executor)
                 .create();
-            
-            org.eclipse.lsp4j.services.LanguageServer serverProxy = clientLauncher.getRemoteProxy();
+
             clientLauncher.startListening();
             
             // Allow time for connection establishment
             Thread.sleep(100);
             
-            logger.info("LSP communication setup completed");
+            logger.info("LSP setup completed");
             
-            return new LSPConnection(executor, serverLauncher, clientLauncher, serverProxy, server, client);
+            return new SnowdropLS(server);
             
         } catch (Exception e) {
             // Cleanup on failure

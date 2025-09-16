@@ -9,15 +9,15 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-public class JavaLanguageServer implements LanguageServer {
-    private static final Logger logger = LoggerFactory.getLogger(JavaLanguageServer.class);
+public class SnowdropLanguageServer implements LanguageServer {
+    private static final Logger logger = LoggerFactory.getLogger(SnowdropLanguageServer.class);
 
     private final JavaTextDocumentService textDocumentService;
     private final JavaWorkspaceService workspaceService;
     private LanguageClient client;
     private int exitCode = 0;
 
-    public JavaLanguageServer() {
+    public SnowdropLanguageServer() {
         this.textDocumentService = new JavaTextDocumentService();
         this.workspaceService = new JavaWorkspaceService();
     }

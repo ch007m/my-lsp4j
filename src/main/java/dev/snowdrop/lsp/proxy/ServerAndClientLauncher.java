@@ -2,9 +2,8 @@ package dev.snowdrop.lsp.proxy;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
-import dev.snowdrop.lsp.common.utils.LSPConnection;
+import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
 import org.eclipse.lsp4j.*;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -25,12 +23,12 @@ public class ServerAndClientLauncher {
         Path exampleDir = FileUtils.getExampleDir();
         logger.info("Created project directory: " + exampleDir);
 
-        // Setup LSP communication using utility class
-        LSPConnection lspConnection = LanguageServer.launchServerAndClient();
+        // Setup LSP
+        SnowdropLS snowdropLS = LanguageServer.launchServerAndClient();
         
         // Initialize the language server with Project Path, ...
         logger.info("CLIENT: Initializing language server...");
-        LanguageServer.initializeLanguageServer(lspConnection.getServerProxy(), exampleDir);
+        LanguageServer.initializeLanguageServer(snowdropLS.getServer(), exampleDir);
         logger.info("CLIENT: Language server initialized successfully.");
 
         // Send custom command
@@ -42,7 +40,7 @@ public class ServerAndClientLauncher {
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> commandResult = lspConnection.getServerProxy().getWorkspaceService().executeCommand(commandParams);
+        CompletableFuture<Object> commandResult = snowdropLS.getServer().getWorkspaceService().executeCommand(commandParams);
         Object result = commandResult.get();
 
         if (result != null) {
@@ -119,7 +117,7 @@ public class ServerAndClientLauncher {
 
         // Shutdown using utility class
         logger.info("CLIENT: Shutting down the language server...");
-        lspConnection.shutdown();
+        //snowdropLS.shutdown();
         logger.info("CLIENT: Done.");
     }
 }
