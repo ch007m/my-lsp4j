@@ -4,14 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
 
@@ -32,13 +28,10 @@ public class JdtlsServer {
     
     private Process startJdtlsProcess() throws IOException {
 
-        Path wksDir = getTempDir();
+        Path wksDir = Paths.get("../");
         logger.info("Created workspace project directory: " + wksDir);
 
-        System.setProperty("CLIENT_PORT","3333");
-
         String os = System.getProperty("os.name").toLowerCase();
-
         Path configPath = os.contains("win") ? Paths.get(JDT_LS_PATH, "config_win") :
             os.contains("mac") ? Paths.get(JDT_LS_PATH, "config_mac_arm") :
                 Paths.get(JDT_LS_PATH, "config_linux");
@@ -51,6 +44,7 @@ public class JdtlsServer {
         ProcessBuilder pb = new ProcessBuilder(
             "java",
             // "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+            "-DCLIENT_PORT=3333",
             "-Dosgi.bundles.defaultStartLevel=4",
             "-Dosgi.checkConfiguration=true",
             "-Dosgi.sharedConfiguration.area.readOnly=true",

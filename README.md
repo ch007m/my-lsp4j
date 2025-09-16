@@ -48,10 +48,16 @@ set ID $(podman create --name kantra-download quay.io/konveyor/kantra:$VERSION)
 podman cp $ID:/jdtls ./konveyor-jdtls
 ```
 
-
-### Start the JDT Language Server and expose it using a Socket
+### Start the jdt client listening on a socket
 
 Start it using the following command
+
+```shell
+mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
+...
+[dev.snowdrop.lsp.JdtlsSocketClient.main()] INFO dev.snowdrop.lsp.JdtlsSocketClient - Connecting to the JDT Language Server on port 3333
+```
+### And now launch the jdt server
 
 ```shell
 set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls" or
@@ -59,14 +65,5 @@ export JDT_LS_PATH="/Users/cmoullia/code/application-modernisation/lsp/jdt-ls"
 mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
 ```
 
-This will:
-- Start the JDT Language Server
-- Create a socket listening on port 3333 to access it
+**Remark**: The server is started using as system property: `-DCLIENT_PORT=3333`
 
-### Run the Client
-
-In a separate terminal, run the client to connect and search for the annotation:
-
-```shell
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
-```

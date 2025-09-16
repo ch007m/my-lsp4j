@@ -2,6 +2,7 @@ package dev.snowdrop.lsp;
 
 import dev.snowdrop.lsp.common.utils.LspClient;
 import dev.snowdrop.lsp.common.services.AnnotationSearchService;
+import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -9,13 +10,11 @@ import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -58,11 +57,10 @@ public class JdtlsSocketClient {
             initParams.setCapabilities(new ClientCapabilities());
 
             CompletableFuture<InitializeResult> initResult = languageServer.initialize(initParams);
-            //InitializeResult result = initResult.get(5, TimeUnit.SECONDS);
 
             // Complete the handshake
             languageServer.initialized(new InitializedParams());
-            runLspClient(languageServer, tempDir, "MySearchableAnnotation").join();
+            searchAnnotation(languageServer, tempDir, "MySearchableAnnotation").join();
         } catch (Exception e) {
             logger.error("The LSP workflow failed unexpectedly.", e);
         } finally {
@@ -71,45 +69,52 @@ public class JdtlsSocketClient {
     }
 
     /**
-     * Initialize the LS client-server and search about the annotation
+     * Search about the annotation
      *
      * @param server                 The proxy to the language server.
      * @param projectRoot            The root directory of the project to be analyzed.
      * @param mySearchableAnnotation
      * @return A CompletableFuture that completes when the entire sequence is finished.
      */
-    private static CompletableFuture<Void> runLspClient(LanguageServer server, Path projectRoot, String mySearchableAnnotation) {
-        CompletableFuture<Void> response = searchWithAnnotationService(server, projectRoot, mySearchableAnnotation);
-        return response
-            .exceptionally(throwable -> {
-                logger.error("CLIENT: An error occurred with the LS Server.", throwable);
-                return null;
-            })
-            .thenCompose(v -> server.shutdown())
-            .thenRun(server::exit);
-    }
+    private static CompletableFuture<List<LSPSymbolInfo>> searchAnnotation(LanguageServer server, Path projectRoot, String mySearchableAnnotation) {
+        logger.info("CLIENT: Starting search for @{} annotation...", mySearchableAnnotation);
 
-    /**
-     * Search for MySearchable annotation
-     */
-    private static CompletableFuture<Void> searchWithAnnotationService(LanguageServer server, Path projectRoot, String annotationName) {
-        logger.info("CLIENT: Starting search for @{} annotation...", annotationName);
-        AnnotationSearchService searchService = new AnnotationSearchService(server);
-        
-        return searchService.searchAnnotation(projectRoot, annotationName)
-            .thenAcceptAsync(result -> {
-                logger.info("CLIENT: --- LSP TextReference {} ---",result.size());
-                for(Location l : result) {
-                    logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
-                        annotationName,
-                        "",
-                        l.getUri(),
-                        l.getRange().getStart().getLine() + 1,
-                        l.getRange().getStart().getCharacter() + 1
-                    );
+        if (server == null) {
+            logger.error("No LanguageServer available, skipping LSP discovery");
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return server.getWorkspaceService().symbol(new WorkspaceSymbolParams(mySearchableAnnotation))
+            .thenApplyAsync(eitherResult -> {
+                List<LSPSymbolInfo> lspSymbols = new ArrayList<>();
+
+                if (eitherResult.isLeft()) {
+                    List<? extends SymbolInformation> symbols = eitherResult.getLeft();
+                    for (SymbolInformation symbol : symbols) {
+                        lspSymbols.add(new LSPSymbolInfo(
+                            symbol.getName(),
+                            symbol.getLocation().getUri(),
+                            symbol.getKind(),
+                            symbol.getLocation()
+                        ));
+                    }
+                } else {
+                    List<? extends WorkspaceSymbol> symbols = eitherResult.getRight();
+                    for (WorkspaceSymbol symbol : symbols) {
+                        if (symbol.getLocation().isLeft()) {
+                            Location location = symbol.getLocation().getLeft();
+                            lspSymbols.add(new LSPSymbolInfo(
+                                symbol.getName(),
+                                location.getUri(),
+                                symbol.getKind(),
+                                location
+                            ));
+                        }
+                    }
                 }
-                logger.info("CLIENT: --------------------------------");
+
+                logger.info("LSP workspace/symbol found {} symbols for '{}'", lspSymbols.size(), mySearchableAnnotation);
+                return lspSymbols;
             });
     }
-
 }
