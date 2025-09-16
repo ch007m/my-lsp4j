@@ -34,19 +34,16 @@ public class LanguageServer {
         
         try {
             // Create streams for client-server communication
-            PipedInputStream serverIn = new PipedInputStream();
-            PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-            
-            PipedInputStream clientIn = new PipedInputStream();
-            PipedOutputStream serverOut = new PipedOutputStream(clientIn);
+            PipedInputStream jdtLSInput = new PipedInputStream();
+            PipedOutputStream jdtLSOutput = new PipedOutputStream(jdtLSInput);
             
             // Create and start the jdt-ls server
             SnowdropLanguageServer server = new SnowdropLanguageServer();
             Launcher<org.eclipse.lsp4j.services.LanguageServer> serverLauncher = new LSPLauncher.Builder<org.eclipse.lsp4j.services.LanguageServer>()
                 .setLocalService(server)
                 .setRemoteInterface(org.eclipse.lsp4j.services.LanguageServer.class)
-                .setInput(serverIn)
-                .setOutput(serverOut)
+                .setInput(jdtLSInput)
+                .setOutput(jdtLSOutput)
                 .setExecutorService(executor)
                 .create();
             
