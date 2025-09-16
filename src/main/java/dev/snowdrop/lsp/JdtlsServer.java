@@ -66,13 +66,18 @@ public class JdtlsServer {
             os.contains("mac") ? Paths.get(JDT_LS_PATH, "config_mac") :
                 Paths.get(JDT_LS_PATH, "config_linux");
 
-        String launcherJar = Objects.requireNonNull(
-            new File(JDT_LS_PATH, "plugins").listFiles((dir, name) -> name.startsWith("org.eclipse.equinox.launcher_")))[0].getName();
+        String launcherJar = Objects
+            .requireNonNull(
+            new File(JDT_LS_PATH, "plugins")
+                .listFiles((dir, name) -> name.startsWith("org.eclipse.equinox.launcher_")))[0].getName();
 
         ProcessBuilder pb = new ProcessBuilder(
             "java",
-            "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+            // "-Declipse.application=org.eclipse.jdt.ls.core.id1",
             "-Dosgi.bundles.defaultStartLevel=4",
+            "-Dosgi.checkConfiguration=true",
+            "-Dosgi.sharedConfiguration.area.readOnly=true",
+            "-Dosgi.configuration.cascaded=true",
             "-Declipse.product=org.eclipse.jdt.ls.core.product",
             "-Dlog.level=ALL",
             "-Djdt.ls.debug=true",
