@@ -1,21 +1,19 @@
 package dev.snowdrop.lsp;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import dev.snowdrop.lsp.common.services.LSPSymbolInfo;
 import dev.snowdrop.lsp.common.utils.FileUtils;
-import dev.snowdrop.lsp.common.utils.SnowdropLS;
 import dev.snowdrop.lsp.common.utils.LanguageServer;
-import org.eclipse.lsp4j.*;
+import dev.snowdrop.lsp.common.utils.SnowdropLS;
+import org.eclipse.lsp4j.Location;
+import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.WorkspaceSymbol;
+import org.eclipse.lsp4j.WorkspaceSymbolParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Type;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static dev.snowdrop.lsp.common.utils.LanguageServer.initializeLanguageServer;
 
@@ -29,7 +27,7 @@ public class JdtLsEmbedded {
 
         // Setup LSP
         SnowdropLS snowdropLS = LanguageServer.launchServer();
-        
+
         // Initialize the language server with Project Path ...
         logger.info("CLIENT: Initializing language server...");
         initializeLanguageServer(snowdropLS.getServer(), exampleDir);
@@ -104,9 +102,10 @@ public class JdtLsEmbedded {
 
                 logger.info("LSP workspace/symbol found {} symbols for '{}'", lspSymbols.size(), annotationToFind);
                 return lspSymbols;
-            }).thenAccept(lspSymbols -> {
-                logger.info("CLIENT: --- LSP workspace/symbol {} ---",lspSymbols.size());
-                for(LSPSymbolInfo l : lspSymbols) {
+            })
+            .thenAccept(lspSymbols -> {
+                logger.info("CLIENT: --- LSP workspace/symbol {} ---", lspSymbols.size());
+                for (LSPSymbolInfo l : lspSymbols) {
                     logger.info("CLIENT:  -> Found @{} on {} in file: {} (line {}, char {})",
                         annotationToFind,
                         "",
@@ -115,6 +114,10 @@ public class JdtLsEmbedded {
                         l.getLocation().getRange().getStart().getCharacter() + 1
                     );
                 }
+            })
+            .exceptionally((ex) -> {
+                logger.error("Failed to initialize language server: {}", ex.getMessage());
+                return null;
             });
 
         logger.info("CLIENT: --------------------------------");
