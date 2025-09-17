@@ -23,6 +23,15 @@
     </properties>
 
     <dependencies>
+        <!-- java analyzer bundle imported from local system -->
+        <dependency>
+            <artifactId>java-analyzer-bundle.core</artifactId>
+            <groupId>io.konveyor.tackle</groupId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar</systemPath>
+        </dependency>
+
         <!-- Core library for Language Server Protocol in Java -->
         <dependency>
             <groupId>org.eclipse.lsp4j</groupId>
@@ -41,18 +50,19 @@
             <artifactId>org.eclipse.jdt.core</artifactId>
             <version>${jdt.version}</version>
         </dependency>
+
         <!-- Simple logging facade -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-        <!-- Simple logger implementation for demonstration purposes -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
+
         <!-- JUnit 5 for testing -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -60,7 +70,6 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- AssertJ for better assertions -->
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
@@ -80,6 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

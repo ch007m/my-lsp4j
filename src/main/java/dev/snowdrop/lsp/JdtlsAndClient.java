@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -105,6 +107,7 @@ public class JdtlsAndClient {
 
         LanguageServer remoteProxy = launcher.getRemoteProxy();
 
+        // TODO : To review in order to pass some missing parameters from a JSON file
         InitializeParams p = new InitializeParams();
         p.setProcessId((int) ProcessHandle.current().pid());
         p.setRootUri(getExampleDir().toUri().toString());
@@ -128,17 +131,15 @@ public class JdtlsAndClient {
         InitializedParams initialized = new InitializedParams();
         remoteProxy.initialized(initialized);
 
-
-        String annotationToFind = "MySearchableAnnotation";
-        //logger.info("CLIENT: Sending custom command '{}' to find '@{}'...", customCmd, annotationToFind);
-
         // Send by example the command java.project.getAll to the jdt-ls as it supports it
-        String customCmd = Optional.ofNullable(System.getProperty("LS_CMD")).orElse("java.project.getAll");
-        logger.info("CLIENT: Sending custom command '{}' ...", customCmd);
+        String cmd = Optional.ofNullable(System.getProperty("LS_CMD")).orElse("java.project.getAll");
+        logger.info("CLIENT: Sending custom command '{}' ...", cmd);
+
+        List<Object> cmdArguments = new ArrayList<>();
 
         future
             .thenRunAsync(() -> {
-                executeCmd(customCmd, null, remoteProxy);
+                executeCmd(cmd, cmdArguments, remoteProxy);
             })
             .exceptionally(
                 t -> {

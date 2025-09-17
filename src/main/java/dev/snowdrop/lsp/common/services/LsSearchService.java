@@ -8,10 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -24,14 +21,14 @@ public class LsSearchService {
         this.languageServer = languageServer;
     }
 
-    public static void executeCmd(String customCmd, String annotationToFind, LanguageServer LS) {
-        List<Object> arguments = (annotationToFind != null && !annotationToFind.isBlank())
-            ? Collections.singletonList(annotationToFind)
-            : Collections.emptyList();
+    public static void executeCmd(String customCmd, List<Object> arguments, LanguageServer LS) {
+        List<Object> cmdArguments = (arguments != null && !arguments.isEmpty())
+            ? arguments
+            : Collections.EMPTY_LIST;
 
         ExecuteCommandParams commandParams = new ExecuteCommandParams(
             customCmd,
-            arguments
+            cmdArguments
         );
 
         CompletableFuture<Object> commandResult = LS.getWorkspaceService()
@@ -56,9 +53,9 @@ public class LsSearchService {
                 List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
 
                 if (locations.isEmpty()) {
-                    logger.info("CLIENT: No classes found with the annotation '@{}'.", annotationToFind);
+                    logger.info("CLIENT: No classes found.");
                 } else {
-                    logger.info("CLIENT: Found {} usage(s) of '@{}':", locations.size(), annotationToFind);
+                    logger.info("CLIENT: Found {} usage(s)':", locations.size());
                     for (Location loc : locations) {
                         logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
                             loc.getUri(),

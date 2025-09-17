@@ -33,6 +33,12 @@ set ID $(podman create --name kantra-download quay.io/konveyor/kantra:$VERSION)
 podman cp $ID:/jdtls ./konveyor-jdtls
 ```
 
+Copy the `konveyor-jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/java-analyzer-bundle.core-1.0.0-SNAPSHOT.jarjava-analyzer-bundle.core-1.0.0-SNAPSHOT.jar` to the `./lib/` of this project to allow maven to load it as it is not published on a maven repository server !
+
+###
+
+Here is the trick to do to add a bundle to the OSGI jdt-ls server. This step is optional as we will pass the bundle path as initialization parameter to the language server !
+
 Edit the `config.ini` file corresponding to your architecture: mac, linux, mac_arm under the folder konveyor-jdtls/config_<ARCH>
 
 Modify within the config.ini file the `osgi.bundles` property and include after the `org.apache.commons.lang3...` jar the BundleSymbolicName of: java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
