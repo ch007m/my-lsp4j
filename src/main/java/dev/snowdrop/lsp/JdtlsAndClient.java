@@ -1,5 +1,7 @@
 package dev.snowdrop.lsp;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dev.snowdrop.lsp.common.utils.LSClient;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -107,6 +109,18 @@ public class JdtlsAndClient {
         p.setProcessId((int) ProcessHandle.current().pid());
         p.setRootUri(getExampleDir().toUri().toString());
         p.setCapabilities(new ClientCapabilities());
+
+        String bundlePath = String.format("[\"%s\"]",Paths.get(JDT_LS_PATH,"java-analyzer-bundle","java-analyzer-bundle.core","target","java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar"));
+        logger.info("bundle path is {}", bundlePath);
+
+        String json = String.format("""
+        {
+           "bundles": %s
+        }""", bundlePath);
+        logger.info("initializationOptions {}", json);
+
+        Object initializationOptions = new Gson().fromJson(json, JsonObject.class);
+        p.setInitializationOptions(initializationOptions);
 
         CompletableFuture<InitializeResult> future = remoteProxy.initialize(p);
         future.get(TIMEOUT, TimeUnit.MILLISECONDS).toString();
