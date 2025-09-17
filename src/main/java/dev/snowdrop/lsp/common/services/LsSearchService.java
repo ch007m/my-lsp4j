@@ -8,7 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -40,31 +43,29 @@ public class LsSearchService {
                 });
 
         Object result = commandResult.join();
+        Gson gson = new Gson();
 
         if (result != null) {
-            logger.info("CLIENT: --- Search Results using as command: {}.",customCmd);
-            if (result instanceof ArrayList<?>) {
-                logger.info("CLIENT: Project path {}", result.toString());
+            logger.info("CLIENT: --- Search Results using as command: {}.", customCmd);
+            // TODO This code should be reviewed to adapt it according to the objects returned as response
+            logger.info("CLIENT: --- Result: {}", gson.toJson(result));
 
+/*            Gson gson = new Gson();
+            Type SymbolInformationListType = new TypeToken<List<SymbolInformation>>() {}.getType();
+            List<SymbolInformation> symbolInformationList = gson.fromJson(gson.toJson(result), SymbolInformationListType);
+
+            if (symbolInformationList.isEmpty()) {
+                logger.info("CLIENT: SymbolInformation List is empty.");
             } else {
-                Gson gson = new Gson();
-                Type locationListType = new TypeToken<List<Location>>() {
-                }.getType();
-                List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
-
-                if (locations.isEmpty()) {
-                    logger.info("CLIENT: No classes found.");
-                } else {
-                    logger.info("CLIENT: Found {} usage(s)':", locations.size());
-                    for (Location loc : locations) {
-                        logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
-                            loc.getUri(),
-                            loc.getRange().getStart().getLine() + 1,
-                            loc.getRange().getStart().getCharacter() + 1
-                        );
-                    }
+                logger.info("CLIENT: Found {} usage(s)':", symbolInformationList.size());
+                for (SymbolInformation si : symbolInformationList) {
+                    logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
+                        si.getLocation().getUri(),
+                        si.getLocation().getRange().getStart().getLine() + 1,
+                        si.getLocation().getRange().getStart().getCharacter() + 1
+                    );
                 }
-            }
+            }*/
             logger.info("CLIENT: ----------------------");
         } else {
             logger.warn("CLIENT: Received null result for command.");

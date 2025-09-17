@@ -3,6 +3,7 @@ package dev.snowdrop.lsp;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dev.snowdrop.lsp.common.utils.LSClient;
+import io.konveyor.tackle.core.internal.RuleEntryParams;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -14,10 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static dev.snowdrop.lsp.common.services.LsSearchService.executeCmd;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
+import static java.lang.String.format;
 
 public class JdtlsAndClient {
 
@@ -133,9 +132,37 @@ public class JdtlsAndClient {
 
         // Send by example the command java.project.getAll to the jdt-ls as it supports it
         String cmd = Optional.ofNullable(System.getProperty("LS_CMD")).orElse("java.project.getAll");
-        logger.info("CLIENT: Sending custom command '{}' ...", cmd);
+        logger.info("CLIENT: Sending the command '{}' ...", cmd);
 
-        List<Object> cmdArguments = new ArrayList<>();
+        // TODO: To be improved to pass the arguments using a json string or file
+        Map<String, Object> paramsMap = Map.of(
+            "project", "java", // hard coded value to java within the external-provider
+            "location", "4",
+            "query", "dev.snowdrop.MySearchableAnnotation", // pattern to search: https://github.com/konveyor/analyzer-lsp/blob/942c196a2d4155cdbb1ae5556e0df490de923c98/external-providers/java-external-provider/pkg/java_external_provider/service_client.go#L125-L136
+            "analysisMode", "source-only" // 2 modes are supported: source-only and full
+        );
+
+        /*
+        location code
+	     "":                 0,
+	     "inheritance":      1,
+	     "method_call":      2,
+	     "constructor_call": 3,
+	     "annotation":       4,
+	     "implements_type":  5,
+	     // Not Implemented
+	     "enum":                 6,
+	     "return_type":          7,
+	     "import":               8,
+	     "variable_declaration": 9,
+	     "type":                 10,
+	     "package":              11,
+	     "field":                12,
+	     "method":               13,
+	     "class":                14,
+         */
+
+        List<Object> cmdArguments = List.of(paramsMap);
 
         future
             .thenRunAsync(() -> {
