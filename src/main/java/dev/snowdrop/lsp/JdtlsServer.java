@@ -9,8 +9,6 @@ import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Optional;
 
-import static dev.snowdrop.lsp.common.utils.FileUtils.getTempDir;
-
 public class JdtlsServer {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsServer.class);
     private static String JDT_LS_PATH;

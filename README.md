@@ -53,6 +53,8 @@ podman cp $ID:/jdtls ./konveyor-jdtls
 Start it using the following command
 
 ```shell
+set -gx LS_CMD "java.project.getAll"
+set -gx LS_CMD "io.konveyor.tackle.samplecommand"
 mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
 ...
 [dev.snowdrop.lsp.JdtlsSocketClient.main()] INFO dev.snowdrop.lsp.JdtlsSocketClient - Connecting to the JDT Language Server on port 3333
@@ -60,8 +62,9 @@ mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
 ### And now launch the jdt server
 
 ```shell
-set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdt-ls" or
-export JDT_LS_PATH="/Users/cmoullia/code/application-modernisation/lsp/jdt-ls"
+set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdtls"
+
+set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/konveyor-jdtls"
 mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
 ```
 
