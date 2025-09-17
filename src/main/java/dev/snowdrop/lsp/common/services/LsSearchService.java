@@ -1,6 +1,7 @@
 package dev.snowdrop.lsp.common.services;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -43,7 +44,7 @@ public class LsSearchService {
                 });
 
         Object result = commandResult.join();
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         if (result != null) {
             logger.info("CLIENT: --- Search Results using as command: {}.", customCmd);
