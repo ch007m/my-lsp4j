@@ -2,6 +2,7 @@ package dev.snowdrop.lsp.common.services;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -45,28 +46,78 @@ public class LsSearchService {
 
         Object result = commandResult.join();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        List<SymbolInformation> symbolInformationList = new ArrayList<>();
 
         if (result != null) {
             logger.info("CLIENT: --- Search Results using as command: {}.", customCmd);
             // TODO This code should be reviewed to adapt it according to the objects returned as response
             logger.info("CLIENT: --- Result: {}", gson.toJson(result));
 
-/*            Gson gson = new Gson();
-            Type SymbolInformationListType = new TypeToken<List<SymbolInformation>>() {}.getType();
-            List<SymbolInformation> symbolInformationList = gson.fromJson(gson.toJson(result), SymbolInformationListType);
+            // Following the Konveyor approach to create SymbolInformation objects
+            try {
+                if (result instanceof List) {
+                    List<?> resultList = (List<?>) result;
+                    for (Object item : resultList) {
+                        SymbolInformation symbol = new SymbolInformation();
+
+                        // Extract data from the result object and populate SymbolInformation
+                        // This assumes the result contains objects with name, kind, and location data
+                        if (item instanceof java.util.Map) {
+                            java.util.Map<?, ?> itemMap = (java.util.Map<?, ?>) item;
+
+                            // Set name if available
+                            if (itemMap.containsKey("name")) {
+                                symbol.setName(String.valueOf(itemMap.get("name")));
+                            }
+
+                            // Set kind if available (convert to SymbolKind)
+                            if (itemMap.containsKey("kind")) {
+                                Object kindValue = itemMap.get("kind");
+                                if (kindValue instanceof Number) {
+                                    symbol.setKind(SymbolKind.forValue(((Number) kindValue).intValue()));
+                                }
+                            }
+
+                            // Set location if available
+                            if (itemMap.containsKey("location")) {
+                                // Parse location data - this would need to be adapted based on actual structure
+                                Object locationData = itemMap.get("location");
+                                Location location = gson.fromJson(gson.toJson(locationData), Location.class);
+                                symbol.setLocation(location);
+                            }
+
+                            symbolInformationList.add(symbol);
+                        }
+                    }
+                } else {
+                    // Fallback to direct GSON conversion if result is not a List
+                    Type SymbolInformationListType = new TypeToken<List<SymbolInformation>>() {}.getType();
+                    symbolInformationList = gson.fromJson(gson.toJson(result), SymbolInformationListType);
+                }
+            } catch (Exception e) {
+                logger.warn("CLIENT: Failed to create SymbolInformation objects: {}", e.getMessage());
+                // Fallback to GSON conversion
+                try {
+                    Type SymbolInformationListType = new TypeToken<List<SymbolInformation>>() {}.getType();
+                    symbolInformationList = gson.fromJson(gson.toJson(result), SymbolInformationListType);
+                } catch (JsonSyntaxException | ClassCastException ex) {
+                    logger.warn("CLIENT: Failed fallback GSON conversion: {}", ex.getMessage());
+                }
+            }
 
             if (symbolInformationList.isEmpty()) {
                 logger.info("CLIENT: SymbolInformation List is empty.");
             } else {
                 logger.info("CLIENT: Found {} usage(s)':", symbolInformationList.size());
                 for (SymbolInformation si : symbolInformationList) {
-                    logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
+                    logger.info("CLIENT:  -> Found {} at: {} (line {}, char {})",
+                        si.getName(),
                         si.getLocation().getUri(),
                         si.getLocation().getRange().getStart().getLine() + 1,
                         si.getLocation().getRange().getStart().getCharacter() + 1
                     );
                 }
-            }*/
+            }
             logger.info("CLIENT: ----------------------");
         } else {
             logger.warn("CLIENT: Received null result for command.");
