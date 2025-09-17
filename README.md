@@ -15,7 +15,7 @@ First, compile the project and generate the classpath file:
 mvn clean compile
 ```
 
-## Approach 1: jdt-ls running separately
+## Approach 1: jdt-ls running as separate process
 
 ### Download jdt-ls
 
@@ -37,33 +37,25 @@ podman cp $ID:/jdtls ./konveyor-jdtls
 
 ### Start the jdt client listening on a socket
 
-Start it using the following command
+Start it using the following command and set the property:
+- `JDT_LS_PATH`: Path of the jdt-ls folder
+- `LS_CMD`: Language server command to be executed. Example: java.project.getAll
 
 ```shell
-set -gx LS_CMD "java.project.getAll"
-set -gx LS_CMD "io.konveyor.tackle.samplecommand"
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsSocketClient
-...
-[dev.snowdrop.lsp.JdtlsSocketClient.main()] INFO dev.snowdrop.lsp.JdtlsSocketClient - Connecting to the JDT Language Server on port 3333
+# LS_CMD "java.project.getAll"
+# LS_CMD "io.konveyor.tackle.samplecommand"
+# LS_CMD "io.konveyor.tackle.ruleEntry" 
+
+# JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdtls"
+# JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/konveyor-jdtls"
+
+mvn exec:java -DJDT_LS_PATH=/Users/cmoullia/code/application-modernisation/lsp/jdtls -DLS_CMD=java.project.getAll
 ```
-### And now launch the jdt server
-
-```shell
-set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/jdtls"
-
-set -gx JDT_LS_PATH "/Users/cmoullia/code/application-modernisation/lsp/konveyor-jdtls"
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
-```
-
-**Remark**: The server is started using as system property: `-DCLIENT_PORT=3333`
-
 You can check the log of the server from the parent folder within: `.jdt_workspace/.metadata/.log` !
 
+## Approach 2: In-process
 
-
-## Approach 1: In-process
-
-For a complete demonstration that runs both client and server together, execute the following command:
+For a complete demonstration that runs both client and an embedded server, execute the following command:
 
 ```shell
 mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtLsEmbedded

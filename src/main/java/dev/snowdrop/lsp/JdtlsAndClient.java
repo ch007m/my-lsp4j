@@ -1,0 +1,131 @@
+package dev.snowdrop.lsp;
+
+import dev.snowdrop.lsp.common.utils.LSClient;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import static dev.snowdrop.lsp.common.services.LsSearchService.executeCmd;
+import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
+
+public class JdtlsAndClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(JdtlsAndClient.class);
+    private static final long TIMEOUT = 2000;
+    private static String JDT_LS_PATH;
+
+    private static Process process = null;
+
+    public static void main(String[] args) throws Exception {
+        JDT_LS_PATH = Optional
+            .ofNullable(System.getProperty("JDT_LS_PATH"))
+            .orElseThrow(() -> new RuntimeException("JDT_LS_PATH en var is missing !"));
+
+        Path wksDir = Paths.get("../");
+        logger.info("Created workspace project directory: " + wksDir);
+
+        String os = System.getProperty("os.name").toLowerCase();
+        Path configPath = os.contains("win") ? Paths.get(JDT_LS_PATH, "config_win") :
+            os.contains("mac") ? Paths.get(JDT_LS_PATH, "config_mac_arm") :
+                Paths.get(JDT_LS_PATH, "config_linux");
+
+        String launcherJar = Objects
+            .requireNonNull(
+                new File(JDT_LS_PATH, "plugins")
+                    .listFiles((dir, name) -> name.startsWith("org.eclipse.equinox.launcher_")))[0].getName();
+
+        ProcessBuilder pb = new ProcessBuilder(
+            "java",
+            "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+            "-Dosgi.bundles.defaultStartLevel=4",
+            "-Dosgi.checkConfiguration=true",
+            "-Dosgi.sharedConfiguration.area.readOnly=true",
+            "-Dosgi.configuration.cascaded=true",
+            "-Declipse.product=org.eclipse.jdt.ls.core.product",
+            "-Dlog.level=ALL",
+            "-Djdt.ls.debug=true",
+            "-noverify",
+            "-Xmx1G",
+            "--add-modules=ALL-SYSTEM",
+            "--add-opens", "java.base/java.util=ALL-UNNAMED",
+            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+            "-jar", Paths.get(JDT_LS_PATH, "plugins", launcherJar).toString(),
+            "-configuration", configPath.toString(),
+            "-data", wksDir.resolve(".jdt_workspace").toString()
+        );
+        pb.redirectErrorStream(true);
+
+        try {
+            process = pb.start();
+            logger.info("Process id: {}", process.info());
+            logger.info("jdt ls started");
+        } catch (IOException exception) {
+            logger.error("Failed to create process :" + exception);
+            System.exit(1);
+        }
+
+        Launcher<LanguageServer> launcher;
+        ExecutorService executor;
+
+        logger.info("Connecting to the JDT Language Server ...");
+
+        executor = Executors.newSingleThreadExecutor();
+        LSClient client = new LSClient();
+
+        launcher = LSPLauncher.createClientLauncher(
+            client,
+            process.getInputStream(),
+            process.getOutputStream(),
+            executor,
+            (writer) -> writer // No-op, we don't want to wrap the writer
+        );
+
+        launcher.startListening();
+
+        LanguageServer remoteProxy = launcher.getRemoteProxy();
+
+        InitializeParams p = new InitializeParams();
+        p.setProcessId((int) ProcessHandle.current().pid());
+        p.setRootUri(getExampleDir().toUri().toString());
+        p.setCapabilities(new ClientCapabilities());
+
+        CompletableFuture<InitializeResult> future = remoteProxy.initialize(p);
+        future.get(TIMEOUT, TimeUnit.MILLISECONDS).toString();
+
+        InitializedParams initialized = new InitializedParams();
+        remoteProxy.initialized(initialized);
+
+
+        String annotationToFind = "MySearchableAnnotation";
+        //logger.info("CLIENT: Sending custom command '{}' to find '@{}'...", customCmd, annotationToFind);
+
+        // Send by example the command java.project.getAll to the jdt-ls as it supports it
+        String customCmd = Optional.ofNullable(System.getProperty("LS_CMD")).orElse("java.project.getAll");
+        logger.info("CLIENT: Sending custom command '{}' ...", customCmd);
+
+        future
+            .thenRunAsync(() -> {
+                executeCmd(customCmd, null, remoteProxy);
+            })
+            .exceptionally(
+                t -> {
+                    t.printStackTrace();
+                    return null;
+                }
+            );
+    }
+}
