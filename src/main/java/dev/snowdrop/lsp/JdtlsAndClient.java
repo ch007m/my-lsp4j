@@ -25,7 +25,7 @@ import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
 public class JdtlsAndClient {
 
     private static final Logger logger = LoggerFactory.getLogger(JdtlsAndClient.class);
-    private static final long TIMEOUT = 2000;
+    private static final long TIMEOUT = 5000;
     private static String JDT_LS_PATH;
     private static String JDT_WKS;
 

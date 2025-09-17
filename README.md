@@ -23,6 +23,8 @@ mkdir jdt-ls
 tar -vxf jdt-language-server-1.50.0.tar.gz -C jdt-ls
 ```
 
+### Konveyor jdt-ls
+
 Alternatively, you can also download and/or use your own server: 
 ```shell
 set VERSION latest
@@ -30,6 +32,15 @@ set VERSION latest
 set ID $(podman create --name kantra-download quay.io/konveyor/kantra:$VERSION)
 podman cp $ID:/jdtls ./konveyor-jdtls
 ```
+
+Edit the `config.ini` file corresponding to your architecture: mac, linux, mac_arm under the folder konveyor-jdtls/config_<ARCH>
+
+Modify within the config.ini file the `osgi.bundles` property and include after the `org.apache.commons.lang3...` jar the BundleSymbolicName of: java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar
+```text
+osgi.bundles=...org.apache.commons.lang3_3.14.0.jar@4,reference\:file\:java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar@2,...
+```
+
+Copy the java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar file from the path `konveyor-jdtls/java-analyzer-bundle/java-analyzer-bundle.core/target/` to the `plugins` folder
 
 ## Start the Jdt-ls and client
 
