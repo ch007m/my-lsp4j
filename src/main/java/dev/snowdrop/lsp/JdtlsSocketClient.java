@@ -15,13 +15,13 @@ import java.net.Socket;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static dev.snowdrop.lsp.common.services.LsSearchService.executeCmd;
-import static dev.snowdrop.lsp.common.services.LsSearchService.searchWksSymbol;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
 
 public class JdtlsSocketClient {
@@ -71,8 +71,8 @@ public class JdtlsSocketClient {
         String annotationToFind = "MySearchableAnnotation";
         //logger.info("CLIENT: Sending custom command '{}' to find '@{}'...", customCmd, annotationToFind);
 
-        // Send custom command
-        String customCmd = "java.project.getAll";
+        // Send by example the command java.project.getAll to the jdt-ls as it supports it
+        String customCmd = Optional.ofNullable(System.getenv("LS_CMD")).orElse("java.project.getAll");
         logger.info("CLIENT: Sending custom command '{}' ...", customCmd);
 
         future
@@ -85,8 +85,6 @@ public class JdtlsSocketClient {
                     return null;
                 }
             );
-
-        executor.shutdown();
     }
 
     /**

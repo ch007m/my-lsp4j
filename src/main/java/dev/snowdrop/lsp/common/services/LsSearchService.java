@@ -3,7 +3,6 @@ package dev.snowdrop.lsp.common.services;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,22 +45,27 @@ public class LsSearchService {
         Object result = commandResult.join();
 
         if (result != null) {
-            Gson gson = new Gson();
-            Type locationListType = new TypeToken<List<Location>>() {
-            }.getType();
-            List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
+            logger.info("CLIENT: --- Search Results using as command: {}.",customCmd);
+            if (result instanceof ArrayList<?>) {
+                logger.info("CLIENT: Project path {}", result.toString());
 
-            logger.info("CLIENT: --- Search Results ---");
-            if (locations.isEmpty()) {
-                logger.info("CLIENT: No classes found with the annotation '@{}'.", annotationToFind);
             } else {
-                logger.info("CLIENT: Found {} usage(s) of '@{}':", locations.size(), annotationToFind);
-                for (Location loc : locations) {
-                    logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
-                        loc.getUri(),
-                        loc.getRange().getStart().getLine() + 1,
-                        loc.getRange().getStart().getCharacter() + 1
-                    );
+                Gson gson = new Gson();
+                Type locationListType = new TypeToken<List<Location>>() {
+                }.getType();
+                List<Location> locations = gson.fromJson(gson.toJson(result), locationListType);
+
+                if (locations.isEmpty()) {
+                    logger.info("CLIENT: No classes found with the annotation '@{}'.", annotationToFind);
+                } else {
+                    logger.info("CLIENT: Found {} usage(s) of '@{}':", locations.size(), annotationToFind);
+                    for (Location loc : locations) {
+                        logger.info("CLIENT:  -> Found at: {} (line {}, char {})",
+                            loc.getUri(),
+                            loc.getRange().getStart().getLine() + 1,
+                            loc.getRange().getStart().getCharacter() + 1
+                        );
+                    }
                 }
             }
             logger.info("CLIENT: ----------------------");
@@ -77,9 +81,10 @@ public class LsSearchService {
         return LS.getWorkspaceService().symbol(symbolParams)
             .thenApply(eitherResult -> {
                 List<SymbolInformation> symbols = new ArrayList<>();
-                if(eitherResult != null) {
+                if (eitherResult != null) {
                     if (eitherResult.isLeft()) symbols.addAll(eitherResult.getLeft());
-                    else symbols.addAll(eitherResult.getRight().stream().filter(ws -> ws.getLocation().isLeft()).map(ws -> new SymbolInformation(ws.getName(), ws.getKind(), ws.getLocation().getLeft())).collect(Collectors.toList()));
+                    else
+                        symbols.addAll(eitherResult.getRight().stream().filter(ws -> ws.getLocation().isLeft()).map(ws -> new SymbolInformation(ws.getName(), ws.getKind(), ws.getLocation().getLeft())).collect(Collectors.toList()));
                 }
 
                 // An annotation in Java has the SymbolKind 'Interface' in LSP.
