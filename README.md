@@ -2,8 +2,8 @@
 
 This project demonstrates two different approaches to use the Eclipse Java Language Server & Protocol (aka: Eclipse jdt-ls) running:
 
-1. In-process within the same JVM as the client
-2. As separate JVM process
+1. As separate JVM process
+2. In-process within the same JVM as the client
 
 The project uses a maven java `example` project where some class contains the annotation `@MySearchableAnnotation` that we would like to search about.
 
@@ -15,20 +15,7 @@ First, compile the project and generate the classpath file:
 mvn clean compile
 ```
 
-## Approach 1: In-process
-
-For a complete demonstration that runs both client and server together, execute the following command:
-
-```shell
-mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtLsEmbedded
-```
-
-This will:
-- Start both the Java Language Server and client communicating using standard streams
-- Initialize the server using the example project
-- Search for annotated classes and display results with precise locations
-
-## Approach 2: jdt-ls running separately
+## Approach 1: jdt-ls running separately
 
 ### Download jdt-ls
 
@@ -72,3 +59,17 @@ mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtlsServer
 
 You can check the log of the server from the parent folder within: `.jdt_workspace/.metadata/.log` !
 
+
+
+## Approach 1: In-process
+
+For a complete demonstration that runs both client and server together, execute the following command:
+
+```shell
+mvn exec:java -Dexec.mainClass=dev.snowdrop.lsp.JdtLsEmbedded
+```
+
+This will:
+- Start both the Java Language Server and client communicating using standard streams
+- Initialize the server using the example project
+- Search for annotated classes and display results with precise locations
