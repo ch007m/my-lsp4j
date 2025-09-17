@@ -43,7 +43,7 @@ public class JdtlsServer {
 
         ProcessBuilder pb = new ProcessBuilder(
             "java",
-            // "-Declipse.application=org.eclipse.jdt.ls.core.id1",
+            "-Declipse.application=org.eclipse.jdt.ls.core.id1",
             "-DCLIENT_PORT=3333",
             "-Dosgi.bundles.defaultStartLevel=4",
             "-Dosgi.checkConfiguration=true",

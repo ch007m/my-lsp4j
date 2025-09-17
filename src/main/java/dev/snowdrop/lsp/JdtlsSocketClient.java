@@ -1,6 +1,6 @@
 package dev.snowdrop.lsp;
 
-import dev.snowdrop.lsp.common.utils.LspClient;
+import dev.snowdrop.lsp.common.utils.LSClient;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
@@ -16,9 +16,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static dev.snowdrop.lsp.common.services.AnnotationSearchService.executeCmd;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
@@ -27,6 +27,7 @@ public class JdtlsSocketClient {
 
     private static final Logger logger = LoggerFactory.getLogger(JdtlsSocketClient.class);
     private static final int SERVER_PORT = 3333;
+    private static final long TIMEOUT = 2000;
 
     public static void main(String[] args) throws Exception {
         Launcher<LanguageServer> launcher;
@@ -37,7 +38,7 @@ public class JdtlsSocketClient {
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT)) {
             Socket socket = serverSocket.accept();
             executor = Executors.newSingleThreadExecutor();
-            LspClient client = new LspClient();
+            LSClient client = new LSClient();
 
             launcher = LSPLauncher.createClientLauncher(
                 client,
@@ -50,21 +51,23 @@ public class JdtlsSocketClient {
             throw new RuntimeException(e);
         }
 
-        LanguageServer LS = launcher.getRemoteProxy();
+        launcher.startListening();
 
-        InitializeParams initParams = new InitializeParams();
-        initParams.setProcessId((int) ProcessHandle.current().pid());
-        initParams.setRootUri(getExampleDir().toUri().toString());
-        initParams.setCapabilities(new ClientCapabilities());
+        LanguageServer remoteProxy = launcher.getRemoteProxy();
+
+        InitializeParams p = new InitializeParams();
+        p.setProcessId((int) ProcessHandle.current().pid());
+        p.setRootUri(getExampleDir().toUri().toString());
+        p.setCapabilities(new ClientCapabilities());
+        CompletableFuture<InitializeResult> future = remoteProxy.initialize(p);
+        future.get(TIMEOUT, TimeUnit.MILLISECONDS).toString();
 
         // Send custom command
         String annotationToFind = "MySearchableAnnotation";
         logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
 
-        LS.initialize(initParams)
-            .thenRunAsync(() -> LS.initialized(new InitializedParams()))
-            .thenRunAsync(() -> {
-                    executeCmd(annotationToFind, LS);
+        future.thenRunAsync(() -> {
+                executeCmd(annotationToFind, remoteProxy);
             });
 
         executor.shutdown();

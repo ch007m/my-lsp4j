@@ -8,8 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
-public class LspClient implements LanguageClient {
-    private static final Logger logger = LoggerFactory.getLogger(LspClient.class);
+public class LSClient implements LanguageClient {
+    private static final Logger logger = LoggerFactory.getLogger(LSClient.class);
 
     @Override
     public void telemetryEvent(Object object) {
