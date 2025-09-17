@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.socket;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -27,16 +27,21 @@ public class JdtlsAndClient {
     private static final Logger logger = LoggerFactory.getLogger(JdtlsAndClient.class);
     private static final long TIMEOUT = 2000;
     private static String JDT_LS_PATH;
+    private static String JDT_WKS;
 
     private static Process process = null;
 
     public static void main(String[] args) throws Exception {
         JDT_LS_PATH = Optional
             .ofNullable(System.getProperty("JDT_LS_PATH"))
-            .orElseThrow(() -> new RuntimeException("JDT_LS_PATH en var is missing !"));
+            .orElseThrow(() -> new RuntimeException("JDT_LS_PATH system property is missing !"));
 
-        Path wksDir = Paths.get("../");
-        logger.info("Created workspace project directory: " + wksDir);
+        JDT_WKS = Optional
+            .ofNullable(System.getProperty("JDT_WKS"))
+            .orElseThrow(() -> new RuntimeException("JDT_WKS system property is missing !"));
+
+        Path wksDir = Paths.get(JDT_WKS);
+        logger.info("Created workspace project directory: {}", wksDir);
 
         String os = System.getProperty("os.name").toLowerCase();
         Path configPath = os.contains("win") ? Paths.get(JDT_LS_PATH, "config_win") :

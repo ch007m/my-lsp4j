@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.embedded;
 
 import dev.snowdrop.lsp.common.utils.FileUtils;
 import dev.snowdrop.lsp.common.utils.LSUtils;

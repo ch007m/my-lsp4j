@@ -1,4 +1,4 @@
-package dev.snowdrop.lsp;
+package dev.snowdrop.lsp.socket;
 
 import dev.snowdrop.lsp.common.utils.LSClient;
 import dev.snowdrop.lsp.model.LSPSymbolInfo;
