@@ -30,13 +30,15 @@ public class AnnotationSearchService {
             Collections.singletonList(annotationToFind)
         );
 
-        CompletableFuture<Object> commandResult = LS.getWorkspaceService().executeCommand(commandParams);
-        Object result = null;
-        try {
-            result = commandResult.get();
-        } catch (ExecutionException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        CompletableFuture<Object> commandResult = LS.getWorkspaceService()
+            .executeCommand(commandParams)
+            .exceptionally(
+                t -> {
+                    t.printStackTrace();
+                    return null;
+                });
+
+        Object result = commandResult.join();
 
         if (result != null) {
             Gson gson = new Gson();
