@@ -20,7 +20,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static dev.snowdrop.lsp.common.services.AnnotationSearchService.executeCmd;
+import static dev.snowdrop.lsp.common.services.LsSearchService.executeCmd;
+import static dev.snowdrop.lsp.common.services.LsSearchService.searchWksSymbol;
 import static dev.snowdrop.lsp.common.utils.FileUtils.getExampleDir;
 
 public class JdtlsSocketClient {
@@ -59,16 +60,31 @@ public class JdtlsSocketClient {
         p.setProcessId((int) ProcessHandle.current().pid());
         p.setRootUri(getExampleDir().toUri().toString());
         p.setCapabilities(new ClientCapabilities());
+
         CompletableFuture<InitializeResult> future = remoteProxy.initialize(p);
         future.get(TIMEOUT, TimeUnit.MILLISECONDS).toString();
 
-        // Send custom command
-        String annotationToFind = "MySearchableAnnotation";
-        logger.info("CLIENT: Sending custom command 'java/findAnnotatedClasses' to find '@{}'...", annotationToFind);
+        InitializedParams initialized = new InitializedParams();
+        remoteProxy.initialized(initialized);
 
-        future.thenRunAsync(() -> {
-                executeCmd(annotationToFind, remoteProxy);
-            });
+
+        String annotationToFind = "MySearchableAnnotation";
+        //logger.info("CLIENT: Sending custom command '{}' to find '@{}'...", customCmd, annotationToFind);
+
+        // Send custom command
+        String customCmd = "java.project.getAll";
+        logger.info("CLIENT: Sending custom command '{}' ...", customCmd);
+
+        future
+            .thenRunAsync(() -> {
+                executeCmd(customCmd, null, remoteProxy);
+            })
+            .exceptionally(
+                t -> {
+                    t.printStackTrace();
+                    return null;
+                }
+            );
 
         executor.shutdown();
     }
